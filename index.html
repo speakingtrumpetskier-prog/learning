@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Mario Level</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <h1>🍄 Super Mario Level 🍄</h1>
+        <div class="info-panel">
+            <div class="score">Score: <span id="score">0</span></div>
+            <div class="coins">Coins: <span id="coins">0</span></div>
+            <div class="lives">Lives: <span id="lives">3</span></div>
+        </div>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div class="controls">
+            <p><strong>Controls:</strong> Arrow Keys to Move, Space/Up Arrow to Jump</p>
+            <button id="restartBtn">Restart Level</button>
+        </div>
+        <div id="gameOver" class="game-over hidden">
+            <h2>Game Over!</h2>
+            <p>Final Score: <span id="finalScore">0</span></p>
+            <button id="restartFromGameOver">Try Again</button>
+        </div>
+        <div id="levelComplete" class="level-complete hidden">
+            <h2>Level Complete! 🎉</h2>
+            <p>Final Score: <span id="completeScore">0</span></p>
+            <button id="restartFromComplete">Play Again</button>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>
