@@ -30,9 +30,9 @@ const player = {
     facingRight: true,
 
     // Physics tuning
-    runSpeed: 0.045,
-    jumpPower: 12,
-    gravity: 0.35,
+    runSpeed: 0.05,
+    jumpPower: 22,
+    gravity: 0.25,
 
     // Game feel
     coyoteTime: 0,
@@ -413,7 +413,7 @@ function updatePlayer() {
     });
 
     // Check if on planet surface
-    if (nearestPlanet && nearestDist <= nearestPlanet.radius + player.radius + 2) {
+    if (nearestPlanet && nearestDist <= nearestPlanet.radius + player.radius + 5) {
         // On planet surface
         if (!player.grounded) {
             player.grounded = true;
@@ -457,7 +457,6 @@ function updatePlayer() {
 
         // Jump
         if (player.jumpBuffer > 0 && player.coyoteTime > 0) {
-            player.normalVel = player.jumpPower;
             player.grounded = false;
             player.jumpBuffer = 0;
             player.coyoteTime = 0;
@@ -465,10 +464,15 @@ function updatePlayer() {
             player.stretch = 0.7;
             createJumpParticles();
 
-            // Convert to space velocity
+            // Convert to space velocity - launch away from planet
             const outAngle = player.angle;
-            player.spaceVelX = Math.cos(outAngle) * player.normalVel + Math.cos(outAngle + Math.PI/2) * player.angularVel * nearestPlanet.radius * 0.5;
-            player.spaceVelY = Math.sin(outAngle) * player.normalVel + Math.sin(outAngle + Math.PI/2) * player.angularVel * nearestPlanet.radius * 0.5;
+            const tangentBoost = player.angularVel * nearestPlanet.radius * 0.6;
+            player.spaceVelX = Math.cos(outAngle) * player.jumpPower + Math.cos(outAngle + Math.PI/2) * tangentBoost;
+            player.spaceVelY = Math.sin(outAngle) * player.jumpPower + Math.sin(outAngle + Math.PI/2) * tangentBoost;
+
+            // Push player off surface immediately so they don't get re-grounded
+            player.x += Math.cos(outAngle) * 10;
+            player.y += Math.sin(outAngle) * 10;
             player.inSpace = true;
         }
     } else {
@@ -480,12 +484,15 @@ function updatePlayer() {
         if (keys.left) player.spaceVelX -= 0.15;
         if (keys.right) player.spaceVelX += 0.15;
 
-        // Apply gravity from nearest planet
+        // Apply gravity from nearest planet (weaker when close, stronger when far)
         if (nearestPlanet) {
             const dx = nearestPlanet.x - player.x;
             const dy = nearestPlanet.y - player.y;
             const d = Math.sqrt(dx * dx + dy * dy);
-            const gravityStrength = (nearestPlanet.radius / 100) * player.gravity;
+            // Gravity ramps up as you get further from surface, gentler near surface
+            const distFromSurface = d - nearestPlanet.radius;
+            const gravityMult = Math.min(distFromSurface / 50, 1); // Ramp up over 50 pixels
+            const gravityStrength = (nearestPlanet.radius / 100) * player.gravity * (0.3 + gravityMult * 0.7);
             player.spaceVelX += (dx / d) * gravityStrength;
             player.spaceVelY += (dy / d) * gravityStrength;
         }
