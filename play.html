@@ -1,0 +1,3235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECHO — Chorus of the Abyss</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='3' fill='%2376e2ff'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%2376e2ff' stroke-opacity='0.6'/%3E%3Ccircle cx='16' cy='16' r='14' fill='none' stroke='%2376e2ff' stroke-opacity='0.3'/%3E%3C/svg%3E">
+<style>
+:root {
+  --ink: #02040a;
+  --ink-2: #050916;
+  --mist: #9bb4d6;
+  --mist-dim: #607695;
+  --glow: #76e2ff;
+  --glow-warm: #ffd39a;
+  --glow-warn: #ff8fa3;
+  --font-display: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: var(--ink);
+  color: var(--mist);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  cursor: none;
+}
+
+#app {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: radial-gradient(ellipse at center, #06101e 0%, #01030a 60%, #000 100%);
+}
+
+canvas#game {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  image-rendering: pixelated;
+}
+
+/* -------- HUD -------- */
+#hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+  font-family: var(--font-mono);
+  letter-spacing: 0.08em;
+  font-size: 11px;
+  color: var(--mist-dim);
+}
+
+.hud-top {
+  position: absolute;
+  top: 18px; left: 18px; right: 18px;
+  display: flex;
+  gap: 32px;
+  justify-content: flex-start;
+}
+
+.hud-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hud-label {
+  text-transform: uppercase;
+  font-size: 9px;
+  color: var(--mist-dim);
+  opacity: 0.7;
+}
+
+.hud-value {
+  color: var(--mist);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-bottom {
+  position: absolute;
+  bottom: 18px; left: 18px; right: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+}
+
+.breath-bar {
+  position: relative;
+  width: 200px;
+  height: 3px;
+  background: rgba(155, 180, 214, 0.08);
+  overflow: hidden;
+}
+.breath-fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, var(--glow) 0%, var(--mist) 100%);
+  transition: width 0.2s ease, background 0.4s ease;
+  box-shadow: 0 0 8px var(--glow);
+}
+.breath-bar.warn .breath-fill { background: var(--glow-warn); box-shadow: 0 0 10px var(--glow-warn); }
+.breath-label {
+  position: absolute;
+  top: -14px; left: 0;
+  font-size: 9px;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.abilities {
+  display: flex;
+  gap: 10px;
+}
+.ability {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid rgba(155, 180, 214, 0.15);
+  background: rgba(5, 9, 22, 0.6);
+  color: var(--mist-dim);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+}
+.ability.active { color: var(--glow); border-color: rgba(118, 226, 255, 0.4); }
+.ability.cooldown { opacity: 0.3; }
+.ability kbd {
+  font-size: 9px;
+  padding: 1px 4px;
+  border: 1px solid rgba(155, 180, 214, 0.2);
+  color: var(--mist);
+  background: rgba(0,0,0,0.4);
+}
+
+/* -------- Whisper (narrative text) -------- */
+#whisper {
+  position: absolute;
+  left: 50%;
+  bottom: 20%;
+  transform: translateX(-50%);
+  max-width: 560px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 22px;
+  color: rgba(155, 180, 214, 0.85);
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+  pointer-events: none;
+  text-shadow: 0 0 28px rgba(118, 226, 255, 0.3);
+  z-index: 12;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+#whisper.show { opacity: 1; }
+
+/* -------- Level card -------- */
+#level-card {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 15;
+  background: rgba(2, 4, 10, 0.85);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.4s ease;
+}
+#level-card.show { opacity: 1; }
+.level-card-inner {
+  text-align: center;
+  max-width: 640px;
+  padding: 0 40px;
+}
+.level-number {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.4em;
+  color: var(--mist-dim);
+  text-transform: uppercase;
+  margin-bottom: 28px;
+  opacity: 0.7;
+}
+.level-title {
+  font-family: var(--font-display);
+  font-size: 64px;
+  font-weight: 400;
+  color: var(--mist);
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+  text-shadow: 0 0 30px rgba(118, 226, 255, 0.2);
+}
+.level-mode {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  color: var(--glow);
+  text-transform: uppercase;
+  margin-bottom: 40px;
+  opacity: 0.75;
+}
+.level-whisper {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 20px;
+  color: rgba(155, 180, 214, 0.7);
+  line-height: 1.6;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+/* -------- Screens -------- */
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  background: radial-gradient(ellipse at center, rgba(6, 16, 30, 0.92) 0%, rgba(0, 0, 0, 0.98) 70%);
+  pointer-events: auto;
+  animation: fadeIn 1.2s ease;
+}
+.screen.hidden { display: none; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* -------- Title -------- */
+.title-stack {
+  text-align: center;
+  position: relative;
+  padding: 60px;
+}
+.title-logo {
+  font-family: var(--font-display);
+  font-size: 120px;
+  font-weight: 300;
+  letter-spacing: 0.35em;
+  color: var(--mist);
+  text-shadow: 0 0 60px rgba(118, 226, 255, 0.35), 0 0 120px rgba(118, 226, 255, 0.15);
+  margin-left: 0.35em;
+  animation: logoBreathe 6s ease-in-out infinite;
+}
+@keyframes logoBreathe {
+  0%, 100% { text-shadow: 0 0 60px rgba(118, 226, 255, 0.35), 0 0 120px rgba(118, 226, 255, 0.15); }
+  50% { text-shadow: 0 0 90px rgba(118, 226, 255, 0.55), 0 0 180px rgba(118, 226, 255, 0.25); }
+}
+.title-sub {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 22px;
+  color: rgba(155, 180, 214, 0.6);
+  letter-spacing: 0.15em;
+  margin-top: -10px;
+  margin-bottom: 30px;
+}
+.title-pulse {
+  width: 1px;
+  height: 80px;
+  background: linear-gradient(to bottom, transparent, var(--glow), transparent);
+  margin: 0 auto 40px;
+  animation: pulseLine 4s ease-in-out infinite;
+}
+@keyframes pulseLine {
+  0%, 100% { opacity: 0.3; transform: scaleY(1); }
+  50% { opacity: 1; transform: scaleY(1.5); }
+}
+.title-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 40px;
+}
+.title-credit {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: var(--mist-dim);
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+
+/* -------- Buttons -------- */
+.btn {
+  background: transparent;
+  border: 1px solid rgba(155, 180, 214, 0.25);
+  color: var(--mist);
+  padding: 14px 36px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 220px;
+}
+.btn:hover {
+  border-color: var(--glow);
+  color: var(--glow);
+  background: rgba(118, 226, 255, 0.05);
+  box-shadow: 0 0 30px rgba(118, 226, 255, 0.15);
+}
+.btn-primary {
+  border-color: rgba(118, 226, 255, 0.5);
+  color: var(--glow);
+}
+.btn-primary:hover {
+  background: rgba(118, 226, 255, 0.1);
+  box-shadow: 0 0 40px rgba(118, 226, 255, 0.3);
+}
+.btn-ghost {
+  border-color: rgba(155, 180, 214, 0.1);
+  color: var(--mist-dim);
+}
+
+/* -------- Help -------- */
+.help-inner {
+  max-width: 560px;
+  padding: 40px;
+  text-align: center;
+}
+.help-inner h2 {
+  font-family: var(--font-display);
+  font-size: 42px;
+  font-weight: 400;
+  color: var(--mist);
+  letter-spacing: 0.1em;
+  margin-bottom: 24px;
+}
+.help-inner p {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 18px;
+  line-height: 1.6;
+  margin-bottom: 28px;
+  color: rgba(155, 180, 214, 0.85);
+}
+.help-controls {
+  list-style: none;
+  text-align: left;
+  max-width: 440px;
+  margin: 0 auto 32px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--mist);
+}
+.help-controls li {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(155, 180, 214, 0.08);
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+}
+kbd {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 2px 8px;
+  background: rgba(155, 180, 214, 0.1);
+  border: 1px solid rgba(155, 180, 214, 0.2);
+  border-radius: 3px;
+  color: var(--mist);
+}
+.help-tip {
+  font-size: 15px;
+  color: var(--mist-dim);
+}
+
+/* -------- Pause / Death / Complete -------- */
+.pause-inner, .death-inner, .complete-inner, .ending-inner {
+  text-align: center;
+  padding: 40px;
+}
+.pause-inner h2, .complete-inner h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 56px;
+  letter-spacing: 0.1em;
+  color: var(--mist);
+  margin-bottom: 32px;
+}
+.pause-inner .btn, .death-inner .btn, .complete-inner .btn {
+  display: block;
+  margin: 12px auto;
+}
+
+.death-word {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 72px;
+  color: rgba(255, 143, 163, 0.8);
+  margin-bottom: 40px;
+  letter-spacing: 0.1em;
+  text-shadow: 0 0 60px rgba(255, 143, 163, 0.3);
+  animation: deathFade 3s ease-in-out infinite;
+}
+@keyframes deathFade {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.complete-pre {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--glow);
+  margin-bottom: 16px;
+  opacity: 0.75;
+}
+.complete-stat {
+  display: flex;
+  justify-content: space-between;
+  width: 280px;
+  margin: 8px auto;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(155, 180, 214, 0.1);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--mist);
+}
+.complete-stat span:first-child {
+  color: var(--mist-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 10px;
+}
+.complete-inner .btn { margin-top: 30px; }
+
+/* -------- Ending -------- */
+#ending {
+  background: #000;
+}
+.ending-inner {
+  max-width: 720px;
+  font-family: var(--font-display);
+  font-size: 28px;
+  line-height: 1.7;
+  color: var(--mist);
+  text-align: center;
+  padding: 60px;
+}
+.ending-line {
+  opacity: 0;
+  animation: endingReveal 4s ease forwards;
+  margin: 20px 0;
+  font-style: italic;
+}
+@keyframes endingReveal {
+  to { opacity: 1; }
+}
+
+.hidden { display: none !important; }
+
+/* accessibility: show system cursor on menus */
+.screen, .btn, #help, #pause, #death, #complete {
+  cursor: default;
+}
+.btn { cursor: pointer; }
+
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="game"></canvas>
+
+  <div id="hud" class="hidden">
+    <div class="hud-top">
+      <div class="hud-section" id="hud-depth">
+        <span class="hud-label">depth</span>
+        <span class="hud-value" id="depth-value">0 m</span>
+      </div>
+      <div class="hud-section" id="hud-mode">
+        <span class="hud-label">mode</span>
+        <span class="hud-value" id="mode-value">—</span>
+      </div>
+      <div class="hud-section" id="hud-fragments">
+        <span class="hud-label">fragments</span>
+        <span class="hud-value" id="fragments-value">0 / 0</span>
+      </div>
+    </div>
+    <div class="hud-bottom">
+      <div class="breath-bar">
+        <div class="breath-fill" id="breath-fill"></div>
+        <span class="breath-label">breath</span>
+      </div>
+      <div class="abilities" id="abilities"></div>
+    </div>
+  </div>
+
+  <div id="whisper" class="hidden"></div>
+  <div id="level-card" class="hidden">
+    <div class="level-card-inner">
+      <div class="level-number" id="level-number"></div>
+      <div class="level-title" id="level-title"></div>
+      <div class="level-mode" id="level-mode"></div>
+      <div class="level-whisper" id="level-whisper"></div>
+    </div>
+  </div>
+
+  <div id="title" class="screen">
+    <div class="title-stack">
+      <h1 class="title-logo">ECHO</h1>
+      <div class="title-sub">Chorus of the Abyss</div>
+      <div class="title-pulse"></div>
+      <div class="title-actions">
+        <button class="btn btn-primary" id="btn-begin">Descend</button>
+        <button class="btn" id="btn-continue">Continue</button>
+        <button class="btn btn-ghost" id="btn-help">How to listen</button>
+      </div>
+      <div class="title-credit">a sonar descent · headphones recommended</div>
+    </div>
+  </div>
+
+  <div id="help" class="screen hidden">
+    <div class="help-inner">
+      <h2>How to listen</h2>
+      <p>You are a small light in a dead sea. You cannot see the world. You can only <em>hear</em> it.</p>
+      <ul class="help-controls">
+        <li><kbd>A</kbd> / <kbd>D</kbd> or <kbd>&larr;</kbd> <kbd>&rarr;</kbd> — drift</li>
+        <li><kbd>W</kbd> / <kbd>Space</kbd> — rise / leap</li>
+        <li><kbd>S</kbd> — descend / hold stillness</li>
+        <li><kbd>J</kbd> or <kbd>Left Click</kbd> — <b>pulse</b> (reveals a wavefront)</li>
+        <li><kbd>K</kbd> — <b>bloom</b> (hold to sing a sustained tone)</li>
+        <li><kbd>L</kbd> — <b>stillness</b> (briefly unheard)</li>
+        <li><kbd>Esc</kbd> — pause</li>
+      </ul>
+      <p class="help-tip">Every pulse attracts. Every silence forgets. Listen for the key of each place and move in harmony with it.</p>
+      <button class="btn btn-primary" id="btn-help-back">Return</button>
+    </div>
+  </div>
+
+  <div id="pause" class="screen hidden">
+    <div class="pause-inner">
+      <h2>held breath</h2>
+      <button class="btn btn-primary" id="btn-resume">Resume</button>
+      <button class="btn" id="btn-restart">Restart level</button>
+      <button class="btn btn-ghost" id="btn-quit">Return to surface</button>
+    </div>
+  </div>
+
+  <div id="death" class="screen hidden">
+    <div class="death-inner">
+      <div class="death-word" id="death-word">silence</div>
+      <button class="btn btn-primary" id="btn-respawn">Breathe again</button>
+    </div>
+  </div>
+
+  <div id="complete" class="screen hidden">
+    <div class="complete-inner">
+      <div class="complete-pre">a chord held</div>
+      <h2 id="complete-title"></h2>
+      <div class="complete-stat"><span>pulses</span><span id="stat-pulses">0</span></div>
+      <div class="complete-stat"><span>fragments</span><span id="stat-fragments">0</span></div>
+      <div class="complete-stat"><span>time</span><span id="stat-time">0s</span></div>
+      <button class="btn btn-primary" id="btn-next">Descend further</button>
+    </div>
+  </div>
+
+  <div id="ending" class="screen hidden">
+    <div class="ending-inner" id="ending-text"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+// ===== utils.js =====
+// Math, easing, geometry helpers.
+
+const TAU = Math.PI * 2;
+
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const smoothstep = (t) => t * t * (3 - 2 * t);
+const mix = lerp;
+
+function randRange(lo, hi) { return lo + Math.random() * (hi - lo); }
+function randInt(lo, hi) { return Math.floor(randRange(lo, hi + 1)); }
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function dist2(a, b) {
+  const dx = a.x - b.x, dy = a.y - b.y;
+  return dx * dx + dy * dy;
+}
+function dist(a, b) { return Math.sqrt(dist2(a, b)); }
+
+function aabb(a, b) {
+  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+}
+
+function approach(current, target, delta) {
+  if (current < target) return Math.min(current + delta, target);
+  if (current > target) return Math.max(current - delta, target);
+  return current;
+}
+
+// Seeded RNG (mulberry32) so level layouts stay stable per seed.
+function seedRng(seed) {
+  let s = seed >>> 0;
+  return function () {
+    s = (s + 0x6D2B79F5) >>> 0;
+    let t = s;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// Ease curves.
+const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+const easeInCubic = (t) => t * t * t;
+const easeInOutSine = (t) => 0.5 - 0.5 * Math.cos(Math.PI * t);
+const easeOutExpo = (t) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t));
+
+// Color helpers.
+function rgba(r, g, b, a = 1) {
+  return `rgba(${r|0},${g|0},${b|0},${a})`;
+}
+
+function hslMix(h1, h2, t) {
+  // cheap HSL interpolation, h1/h2 in degrees
+  let dh = h2 - h1;
+  if (dh > 180) dh -= 360;
+  if (dh < -180) dh += 360;
+  return (h1 + dh * t + 360) % 360;
+}
+
+// Segment queries.
+function pointInRect(px, py, r) {
+  return px >= r.x && px <= r.x + r.w && py >= r.y && py <= r.y + r.h;
+}
+
+function rectNearestPoint(px, py, r) {
+  return {
+    x: clamp(px, r.x, r.x + r.w),
+    y: clamp(py, r.y, r.y + r.h),
+  };
+}
+
+// Note/frequency helpers.
+function midiToFreq(m) {
+  return 440 * Math.pow(2, (m - 69) / 12);
+}
+
+// Mode scales (semitone offsets from root).
+const MODES = {
+  ionian:     [0, 2, 4, 5, 7, 9, 11],
+  dorian:     [0, 2, 3, 5, 7, 9, 10],
+  phrygian:   [0, 1, 3, 5, 7, 8, 10],
+  lydian:     [0, 2, 4, 6, 7, 9, 11],
+  mixolydian: [0, 2, 4, 5, 7, 9, 10],
+  aeolian:    [0, 2, 3, 5, 7, 8, 10],
+  locrian:    [0, 1, 3, 5, 6, 8, 10],
+  // A custom "chorus" mode for the finale: open + dissonant + resolved
+  chorus:     [0, 2, 5, 7, 9, 11, 14],
+};
+
+function scaleNote(root, mode, degree) {
+  const scale = MODES[mode];
+  const octave = Math.floor(degree / scale.length);
+  const step = ((degree % scale.length) + scale.length) % scale.length;
+  return root + octave * 12 + scale[step];
+}
+
+
+// ===== particles.js =====
+// Lightweight particle system.
+
+class Particles {
+  constructor(max = 900) {
+    this.max = max;
+    this.pool = new Array(max).fill(null).map(() => this._blank());
+    this.head = 0;
+  }
+  _blank() {
+    return { alive: false, x: 0, y: 0, vx: 0, vy: 0, life: 0, maxLife: 1,
+             size: 1, color: "#ffffff", blend: "lighter", drag: 1, grav: 0, trail: false };
+  }
+  spawn(cfg) {
+    for (let i = 0; i < this.max; i++) {
+      const idx = (this.head + i) % this.max;
+      const p = this.pool[idx];
+      if (!p.alive) {
+        Object.assign(p, this._blank(), cfg, { alive: true });
+        this.head = (idx + 1) % this.max;
+        return p;
+      }
+    }
+    return null;
+  }
+  burst(x, y, count, cfg = {}) {
+    for (let i = 0; i < count; i++) {
+      const a = randRange(0, TAU);
+      const s = randRange(cfg.speedMin ?? 20, cfg.speedMax ?? 80);
+      this.spawn({
+        x, y,
+        vx: Math.cos(a) * s,
+        vy: Math.sin(a) * s,
+        life: 0,
+        maxLife: randRange(cfg.lifeMin ?? 0.4, cfg.lifeMax ?? 1.2),
+        size: randRange(cfg.sizeMin ?? 1, cfg.sizeMax ?? 3),
+        color: cfg.color ?? "rgba(118, 226, 255, 1)",
+        blend: cfg.blend ?? "lighter",
+        drag: cfg.drag ?? 0.92,
+        grav: cfg.grav ?? 0,
+        trail: cfg.trail ?? false,
+      });
+    }
+  }
+  update(dt) {
+    for (const p of this.pool) {
+      if (!p.alive) continue;
+      p.life += dt;
+      if (p.life >= p.maxLife) { p.alive = false; continue; }
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.vx *= Math.pow(p.drag, dt * 60);
+      p.vy *= Math.pow(p.drag, dt * 60);
+      p.vy += p.grav * dt;
+    }
+  }
+  render(ctx, cam) {
+    for (const p of this.pool) {
+      if (!p.alive) continue;
+      const t = p.life / p.maxLife;
+      const a = 1 - t;
+      const sx = p.x - cam.x;
+      const sy = p.y - cam.y;
+      ctx.globalCompositeOperation = p.blend;
+      ctx.globalAlpha = a;
+      ctx.fillStyle = p.color;
+      const r = p.size * (1 - 0.3 * t);
+      ctx.beginPath();
+      ctx.arc(sx, sy, r, 0, TAU);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = "source-over";
+  }
+}
+
+
+// ===== input.js =====
+// Keyboard + mouse input. Key-down edge detection.
+
+const KEY_MAP = {
+  left:    ["ArrowLeft", "KeyA"],
+  right:   ["ArrowRight", "KeyD"],
+  up:      ["ArrowUp", "KeyW", "Space"],
+  down:    ["ArrowDown", "KeyS"],
+  pulse:   ["KeyJ"],
+  bloom:   ["KeyK"],
+  still:   ["KeyL"],
+  pause:   ["Escape"],
+  confirm: ["Enter"],
+};
+
+class Input {
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.down = new Set();
+    this.pressedThisFrame = new Set();
+    this.releasedThisFrame = new Set();
+    this.mouse = { x: 0, y: 0, down: false, clickedThisFrame: false };
+
+    window.addEventListener("keydown", this._onKey.bind(this, true));
+    window.addEventListener("keyup", this._onKey.bind(this, false));
+
+    canvas.addEventListener("mousemove", (e) => {
+      const r = canvas.getBoundingClientRect();
+      this.mouse.x = (e.clientX - r.left) * (canvas.width / r.width);
+      this.mouse.y = (e.clientY - r.top) * (canvas.height / r.height);
+    });
+    canvas.addEventListener("mousedown", () => { this.mouse.down = true; this.mouse.clickedThisFrame = true; });
+    canvas.addEventListener("mouseup", () => { this.mouse.down = false; });
+    // prevent space-scroll
+    window.addEventListener("keydown", (e) => {
+      if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) e.preventDefault();
+    });
+  }
+
+  _onKey(isDown, e) {
+    if (e.repeat) return;
+    if (isDown) {
+      if (!this.down.has(e.code)) this.pressedThisFrame.add(e.code);
+      this.down.add(e.code);
+    } else {
+      this.down.delete(e.code);
+      this.releasedThisFrame.add(e.code);
+    }
+  }
+
+  endFrame() {
+    this.pressedThisFrame.clear();
+    this.releasedThisFrame.clear();
+    this.mouse.clickedThisFrame = false;
+  }
+
+  isDown(action) {
+    return KEY_MAP[action].some(k => this.down.has(k));
+  }
+
+  wasPressed(action) {
+    return KEY_MAP[action].some(k => this.pressedThisFrame.has(k));
+  }
+
+  wasReleased(action) {
+    return KEY_MAP[action].some(k => this.releasedThisFrame.has(k));
+  }
+}
+
+
+// ===== audio.js =====
+// Procedural audio engine — modal, adaptive. Each level has:
+//   root (midi), mode, tempo, layers (ambient pad, arp, bass, perc).
+// Layers raise/fade by "intensity" and "danger" signals from gameplay.
+//
+// No samples used — everything synthesized via Web Audio nodes.
+
+class Audio {
+  constructor() {
+    this.ctx = null;
+    this.master = null;
+    this.bus = {};
+    this.reverb = null;
+    this.ready = false;
+    this.scene = null;      // current scene config
+    this.intensity = 0;     // 0..1, brightens mix
+    this.danger = 0;        // 0..1, adds tension
+    this.muted = false;
+    this._schedHandle = null;
+    this._startTime = 0;
+    this._lastBeat = -1;
+    this._padVoices = [];
+    this._arpIndex = 0;
+  }
+
+  async init() {
+    if (this.ready) return;
+    // Safari prefixes, etc.
+    const AC = window.AudioContext || window.webkitAudioContext;
+    this.ctx = new AC({ latencyHint: "interactive" });
+    this.master = this.ctx.createGain();
+    this.master.gain.value = 0.7;
+    this.master.connect(this.ctx.destination);
+
+    // --- Reverb (synthetic impulse) ---
+    this.reverb = this.ctx.createConvolver();
+    this.reverb.buffer = this._makeImpulse(3.4, 3.2);
+    const revGain = this.ctx.createGain();
+    revGain.gain.value = 0.45;
+    this.reverb.connect(revGain).connect(this.master);
+
+    // --- Delay ---
+    const delay = this.ctx.createDelay(2);
+    delay.delayTime.value = 0.38;
+    const delayFb = this.ctx.createGain();
+    delayFb.gain.value = 0.42;
+    const delayOut = this.ctx.createGain();
+    delayOut.gain.value = 0.28;
+    delay.connect(delayFb).connect(delay);
+    delay.connect(delayOut).connect(this.master);
+    delay.connect(this.reverb);
+    this.delay = delay;
+
+    // --- Buses ---
+    const mkBus = (gain = 1) => {
+      const g = this.ctx.createGain();
+      g.gain.value = gain;
+      g.connect(this.master);
+      g.connect(this.reverb);
+      g.connect(delay);
+      return g;
+    };
+    this.bus.pad = mkBus(0.5);
+    this.bus.arp = mkBus(0.45);
+    this.bus.bass = mkBus(0.55);
+    this.bus.perc = mkBus(0.35);
+    this.bus.sfx = mkBus(0.9);
+    this.ready = true;
+  }
+
+  async resume() {
+    if (!this.ready) await this.init();
+    if (this.ctx.state === "suspended") await this.ctx.resume();
+  }
+
+  suspend() { if (this.ctx && this.ctx.state === "running") this.ctx.suspend(); }
+
+  setMuted(m) {
+    this.muted = m;
+    if (!this.master) return;
+    this.master.gain.linearRampToValueAtTime(m ? 0 : 0.7, this.ctx.currentTime + 0.25);
+  }
+
+  // --- Scene (music) ---
+  setScene(scene) {
+    this.scene = scene;
+    this._startTime = this.ctx?.currentTime ?? 0;
+    this._lastBeat = -1;
+    this._arpIndex = 0;
+    // Kick off held pad voices.
+    this._stopPad();
+    if (scene) this._startPad();
+  }
+
+  clearScene() {
+    this.scene = null;
+    this._stopPad();
+  }
+
+  setIntensity(v) { this.intensity = clamp(v, 0, 1); }
+  setDanger(v)    { this.danger = clamp(v, 0, 1); }
+
+  // --- Scheduler: call each frame ---
+  tick() {
+    if (!this.ready || !this.scene || this.muted) return;
+    const s = this.scene;
+    const t = this.ctx.currentTime - this._startTime;
+    const bps = s.tempo / 60;
+    const beat = Math.floor(t * bps);
+
+    if (beat !== this._lastBeat) {
+      this._lastBeat = beat;
+      this._onBeat(beat);
+    }
+
+    // Adjust bus mix based on intensity/danger.
+    const now = this.ctx.currentTime;
+    this.bus.pad.gain.setTargetAtTime(0.35 + 0.15 * this.intensity, now, 0.8);
+    this.bus.arp.gain.setTargetAtTime(0.15 + 0.45 * this.intensity, now, 0.6);
+    this.bus.bass.gain.setTargetAtTime(0.35 + 0.3 * this.danger, now, 0.9);
+    this.bus.perc.gain.setTargetAtTime(0.15 + 0.45 * this.danger, now, 0.4);
+  }
+
+  _onBeat(beat) {
+    const s = this.scene;
+    if (!s) return;
+    const now = this.ctx.currentTime + 0.02;
+    const beatInBar = ((beat % s.bar) + s.bar) % s.bar;
+
+    // --- Bass: downbeat pulse ---
+    if (beatInBar === 0 || (s.bassDouble && beatInBar === s.bar / 2)) {
+      const degree = s.bassPattern[Math.floor(beat / s.bar) % s.bassPattern.length] ?? 0;
+      const midi = scaleNote(s.root - 24, s.mode, degree);
+      this._playBass(midiToFreq(midi), now, 0.9);
+    }
+
+    // --- Arp: spread across beats ---
+    if (s.arpPattern && s.arpPattern.length) {
+      const step = s.arpPattern[beat % s.arpPattern.length];
+      if (step !== null && step !== undefined) {
+        const midi = scaleNote(s.root, s.mode, step);
+        this._playArp(midiToFreq(midi), now, 0.45 + 0.3 * this.intensity);
+      }
+    }
+
+    // --- Perc: depth/danger driven ---
+    if (this.danger > 0.1) {
+      if (beat % 2 === 0) this._playPerc("kick", now);
+      if ((beat + 1) % 4 === 0) this._playPerc("tick", now);
+      if (this.danger > 0.5 && beat % 3 === 0) this._playPerc("shake", now);
+    }
+  }
+
+  // --- Held pad (sustained chord voices) ---
+  _startPad() {
+    if (!this.scene) return;
+    const s = this.scene;
+    const now = this.ctx.currentTime;
+    const chordDegrees = s.chord ?? [0, 2, 4, 6];
+    for (const deg of chordDegrees) {
+      const midi = scaleNote(s.root, s.mode, deg);
+      const osc1 = this.ctx.createOscillator();
+      const osc2 = this.ctx.createOscillator();
+      osc1.type = "sine";
+      osc2.type = "triangle";
+      const f = midiToFreq(midi);
+      osc1.frequency.value = f;
+      osc2.frequency.value = f * 1.003; // slight detune
+
+      const g = this.ctx.createGain();
+      g.gain.value = 0;
+      g.gain.linearRampToValueAtTime(0.08 + Math.random() * 0.04, now + 4);
+
+      // LFO on amp for slow shimmer
+      const lfo = this.ctx.createOscillator();
+      lfo.frequency.value = 0.1 + Math.random() * 0.15;
+      const lfoGain = this.ctx.createGain();
+      lfoGain.gain.value = 0.04;
+      lfo.connect(lfoGain).connect(g.gain);
+
+      // Lowpass for warmth
+      const filt = this.ctx.createBiquadFilter();
+      filt.type = "lowpass";
+      filt.frequency.value = 900 + Math.random() * 400;
+      filt.Q.value = 0.7;
+
+      osc1.connect(filt);
+      osc2.connect(filt);
+      filt.connect(g);
+      g.connect(this.bus.pad);
+
+      osc1.start(now); osc2.start(now); lfo.start(now);
+      this._padVoices.push({ osc1, osc2, lfo, g, filt });
+    }
+  }
+
+  _stopPad() {
+    const now = this.ctx?.currentTime ?? 0;
+    for (const v of this._padVoices) {
+      try {
+        v.g.gain.cancelScheduledValues(now);
+        v.g.gain.linearRampToValueAtTime(0, now + 1.5);
+        v.osc1.stop(now + 1.6);
+        v.osc2.stop(now + 1.6);
+        v.lfo.stop(now + 1.6);
+      } catch {}
+    }
+    this._padVoices = [];
+  }
+
+  // --- Voices ---
+  _playBass(freq, when, vel = 0.9) {
+    const ctx = this.ctx;
+    const o = ctx.createOscillator();
+    const o2 = ctx.createOscillator();
+    o.type = "sine"; o2.type = "triangle";
+    o.frequency.value = freq; o2.frequency.value = freq * 0.5;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, when);
+    g.gain.linearRampToValueAtTime(0.45 * vel, when + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.001, when + 1.8);
+    const f = ctx.createBiquadFilter();
+    f.type = "lowpass";
+    f.frequency.value = 500;
+    o.connect(f); o2.connect(f);
+    f.connect(g).connect(this.bus.bass);
+    o.start(when); o2.start(when);
+    o.stop(when + 2); o2.stop(when + 2);
+  }
+
+  _playArp(freq, when, vel = 0.5) {
+    const ctx = this.ctx;
+    const o = ctx.createOscillator();
+    o.type = "sine";
+    o.frequency.value = freq;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, when);
+    g.gain.linearRampToValueAtTime(0.18 * vel, when + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.001, when + 1.3);
+    const f = ctx.createBiquadFilter();
+    f.type = "bandpass";
+    f.frequency.value = freq * 2;
+    f.Q.value = 4;
+    o.connect(f).connect(g).connect(this.bus.arp);
+    o.start(when); o.stop(when + 1.5);
+  }
+
+  _playPerc(kind, when) {
+    const ctx = this.ctx;
+    if (kind === "kick") {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = "sine";
+      o.frequency.setValueAtTime(110, when);
+      o.frequency.exponentialRampToValueAtTime(40, when + 0.15);
+      g.gain.setValueAtTime(0, when);
+      g.gain.linearRampToValueAtTime(0.5, when + 0.005);
+      g.gain.exponentialRampToValueAtTime(0.001, when + 0.35);
+      o.connect(g).connect(this.bus.perc);
+      o.start(when); o.stop(when + 0.4);
+    } else if (kind === "tick") {
+      const noise = this._noiseBuffer(0.12);
+      const src = ctx.createBufferSource();
+      src.buffer = noise;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.2, when);
+      g.gain.exponentialRampToValueAtTime(0.001, when + 0.12);
+      const f = ctx.createBiquadFilter();
+      f.type = "highpass";
+      f.frequency.value = 3000;
+      src.connect(f).connect(g).connect(this.bus.perc);
+      src.start(when);
+    } else if (kind === "shake") {
+      const noise = this._noiseBuffer(0.2);
+      const src = ctx.createBufferSource();
+      src.buffer = noise;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.18, when);
+      g.gain.exponentialRampToValueAtTime(0.001, when + 0.2);
+      const f = ctx.createBiquadFilter();
+      f.type = "bandpass";
+      f.frequency.value = 5000;
+      src.connect(f).connect(g).connect(this.bus.perc);
+      src.start(when);
+    }
+  }
+
+  // --- SFX: pulses, collect, harm, bloom ---
+  sfxPulse(strength = 1) {
+    if (!this.ready) return;
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+    const root = this.scene ? this.scene.root : 55;
+    const mode = this.scene ? this.scene.mode : "dorian";
+
+    // 2-voice chord up a fifth, bell-ish
+    const notes = [
+      midiToFreq(scaleNote(root, mode, 0)),
+      midiToFreq(scaleNote(root, mode, 4)),
+    ];
+    for (let i = 0; i < notes.length; i++) {
+      const o = ctx.createOscillator();
+      o.type = i === 0 ? "sine" : "triangle";
+      o.frequency.value = notes[i];
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(0.28 * strength * (i === 0 ? 1 : 0.6), now + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 1.6);
+      const f = ctx.createBiquadFilter();
+      f.type = "bandpass";
+      f.frequency.value = notes[i] * 2;
+      f.Q.value = 6;
+      o.connect(f).connect(g).connect(this.bus.sfx);
+      o.start(now); o.stop(now + 1.8);
+    }
+  }
+
+  sfxCollect() {
+    if (!this.ready) return;
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+    const root = this.scene ? this.scene.root : 60;
+    const mode = this.scene ? this.scene.mode : "ionian";
+    const seq = [0, 2, 4];
+    for (let i = 0; i < seq.length; i++) {
+      const o = ctx.createOscillator();
+      o.type = "sine";
+      o.frequency.value = midiToFreq(scaleNote(root + 12, mode, seq[i]));
+      const g = ctx.createGain();
+      const t = now + i * 0.07;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.18, t + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
+      o.connect(g).connect(this.bus.sfx);
+      o.start(t); o.stop(t + 0.7);
+    }
+  }
+
+  sfxHarm() {
+    if (!this.ready) return;
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+    const o = ctx.createOscillator();
+    o.type = "sawtooth";
+    o.frequency.setValueAtTime(200, now);
+    o.frequency.exponentialRampToValueAtTime(60, now + 0.9);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, now);
+    g.gain.linearRampToValueAtTime(0.35, now + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+    const f = ctx.createBiquadFilter();
+    f.type = "lowpass"; f.frequency.value = 600;
+    o.connect(f).connect(g).connect(this.bus.sfx);
+    o.start(now); o.stop(now + 1.3);
+  }
+
+  sfxJump() {
+    if (!this.ready) return;
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+    const root = this.scene ? this.scene.root : 60;
+    const mode = this.scene ? this.scene.mode : "dorian";
+    const o = ctx.createOscillator();
+    o.type = "triangle";
+    o.frequency.value = midiToFreq(scaleNote(root + 12, mode, 2));
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, now);
+    g.gain.linearRampToValueAtTime(0.12, now + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+    o.connect(g).connect(this.bus.sfx);
+    o.start(now); o.stop(now + 0.4);
+  }
+
+  sfxBloom(pitchOffset = 0) {
+    if (!this.ready) return null;
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+    const root = this.scene ? this.scene.root : 60;
+    const mode = this.scene ? this.scene.mode : "ionian";
+    const o = ctx.createOscillator();
+    o.type = "sine";
+    o.frequency.value = midiToFreq(scaleNote(root + 12, mode, 0) + pitchOffset);
+    const o2 = ctx.createOscillator();
+    o2.type = "sine";
+    o2.frequency.value = midiToFreq(scaleNote(root + 19, mode, 0) + pitchOffset);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, now);
+    g.gain.linearRampToValueAtTime(0.18, now + 0.12);
+    o.connect(g); o2.connect(g);
+    g.connect(this.bus.sfx);
+    o.start(now); o2.start(now);
+    return { stop: () => {
+      const t = ctx.currentTime;
+      g.gain.cancelScheduledValues(t);
+      g.gain.linearRampToValueAtTime(0, t + 0.18);
+      o.stop(t + 0.2); o2.stop(t + 0.2);
+    }};
+  }
+
+  sfxWhisper() {
+    if (!this.ready) return;
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+    const src = ctx.createBufferSource();
+    src.buffer = this._noiseBuffer(0.8);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, now);
+    g.gain.linearRampToValueAtTime(0.06, now + 0.2);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+    const f = ctx.createBiquadFilter();
+    f.type = "bandpass";
+    f.frequency.value = 1200; f.Q.value = 4;
+    src.connect(f).connect(g).connect(this.bus.sfx);
+    src.start(now);
+  }
+
+  // --- Helpers ---
+  _noiseBuffer(sec = 0.2) {
+    const len = Math.floor(this.ctx.sampleRate * sec);
+    const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+    return buf;
+  }
+
+  _makeImpulse(seconds, decay) {
+    const rate = this.ctx.sampleRate;
+    const len = Math.floor(rate * seconds);
+    const imp = this.ctx.createBuffer(2, len, rate);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = imp.getChannelData(ch);
+      for (let i = 0; i < len; i++) {
+        d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+      }
+    }
+    return imp;
+  }
+}
+
+const audio = new Audio();
+
+
+// ===== entities.js =====
+// Entities that populate levels. All listen to pulses; all interact with the
+// player. Distinct entity types provide level variety.
+
+// -------- Fragment: collectible memory. Brief whisper on pickup. --------
+class Fragment {
+  constructor(x, y, text) {
+    this.x = x; this.y = y;
+    this.text = text;
+    this.collected = false;
+    this.r = 5;
+    this.pulsePhase = Math.random() * TAU;
+    this.revealed = 0; // 0..1 how recently a pulse touched
+    this.kind = "fragment";
+  }
+  update(dt) {
+    this.pulsePhase += dt * 2;
+    this.revealed = Math.max(0, this.revealed - dt * 0.4);
+  }
+  onPulse(p) { this.revealed = 1; }
+  collidesPlayer(p) {
+    return dist(this, p) < this.r + 8;
+  }
+  render(ctx, cam) {
+    const sx = this.x - cam.x, sy = this.y - cam.y;
+    const pulse = 0.5 + 0.5 * Math.sin(this.pulsePhase);
+    const a = 0.35 + 0.65 * this.revealed;
+    ctx.globalCompositeOperation = "lighter";
+    ctx.fillStyle = `rgba(255, 211, 154, ${0.9 * a})`;
+    ctx.beginPath(); ctx.arc(sx, sy, this.r + pulse * 1.2, 0, TAU); ctx.fill();
+    ctx.fillStyle = `rgba(255, 244, 220, ${a})`;
+    ctx.beginPath(); ctx.arc(sx, sy, 1.8, 0, TAU); ctx.fill();
+    // halo
+    const grad = ctx.createRadialGradient(sx, sy, 0, sx, sy, 28);
+    grad.addColorStop(0, `rgba(255, 211, 154, ${0.3 * a})`);
+    grad.addColorStop(1, "rgba(255, 211, 154, 0)");
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.arc(sx, sy, 28, 0, TAU); ctx.fill();
+    ctx.globalCompositeOperation = "source-over";
+  }
+}
+
+// -------- Resonator: hold bloom near it to open a path. --------
+class Resonator {
+  constructor(x, y, pitch = 0) {
+    this.x = x; this.y = y;
+    this.r = 12;
+    this.pitch = pitch;
+    this.charge = 0; // 0..1
+    this.triggered = false;
+    this.revealed = 0;
+    this.kind = "resonator";
+  }
+  update(dt, game) {
+    this.revealed = Math.max(0, this.revealed - dt * 0.4);
+    const p = game.level.player;
+    const d = dist(this, p);
+    if (p && p.bloomActive && d < 90 && !this.triggered) {
+      this.charge = Math.min(1, this.charge + dt * 0.55);
+      if (this.charge >= 1) {
+        this.triggered = true;
+        this.revealed = 1;
+        game.level.onResonatorTriggered(this);
+        audio.sfxCollect();
+        game.particles.burst(this.x, this.y, 40, {
+          speedMin: 30, speedMax: 140, lifeMin: 0.5, lifeMax: 1.4,
+          color: "rgba(255, 211, 154, 0.9)", drag: 0.9,
+        });
+      }
+    } else if (!this.triggered) {
+      this.charge = Math.max(0, this.charge - dt * 0.25);
+    }
+  }
+  onPulse() { this.revealed = 1; }
+  render(ctx, cam) {
+    const sx = this.x - cam.x, sy = this.y - cam.y;
+    const a = 0.3 + 0.7 * this.revealed;
+    ctx.strokeStyle = this.triggered
+      ? `rgba(255, 211, 154, ${a})`
+      : `rgba(155, 180, 214, ${a})`;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(sx, sy, this.r, 0, TAU); ctx.stroke();
+    if (this.charge > 0) {
+      ctx.strokeStyle = `rgba(255, 211, 154, ${a})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(sx, sy, this.r + 3, -Math.PI / 2, -Math.PI / 2 + this.charge * TAU);
+      ctx.stroke();
+    }
+    if (this.triggered) {
+      ctx.globalCompositeOperation = "lighter";
+      const grad = ctx.createRadialGradient(sx, sy, 0, sx, sy, 42);
+      grad.addColorStop(0, `rgba(255, 211, 154, 0.35)`);
+      grad.addColorStop(1, "rgba(255, 211, 154, 0)");
+      ctx.fillStyle = grad;
+      ctx.beginPath(); ctx.arc(sx, sy, 42, 0, TAU); ctx.fill();
+      ctx.globalCompositeOperation = "source-over";
+    }
+  }
+}
+
+// -------- Gate: activated by triggers; dissolves when all triggers fire. --------
+class Gate {
+  constructor(x, y, w, h, group = "default") {
+    this.x = x; this.y = y; this.w = w; this.h = h;
+    this.group = group;
+    this.open = false;
+    this.openAmt = 0;
+    this.revealed = 0;
+    this.kind = "gate";
+  }
+  update(dt) {
+    this.revealed = Math.max(0, this.revealed - dt * 0.35);
+    this.openAmt = lerp(this.openAmt, this.open ? 1 : 0, 1 - Math.pow(0.01, dt));
+  }
+  onPulse() { this.revealed = 1; }
+  isSolid() { return this.openAmt < 0.5; }
+  render(ctx, cam) {
+    const a = (0.35 + 0.65 * this.revealed) * (1 - this.openAmt);
+    if (a <= 0.01) return;
+    ctx.fillStyle = `rgba(118, 226, 255, ${0.1 * a})`;
+    ctx.fillRect(this.x - cam.x, this.y - cam.y, this.w, this.h);
+    ctx.strokeStyle = `rgba(118, 226, 255, ${0.6 * a})`;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(this.x - cam.x, this.y - cam.y, this.w, this.h);
+    // internal bars
+    ctx.strokeStyle = `rgba(118, 226, 255, ${0.25 * a})`;
+    for (let i = 0; i < this.w; i += 6) {
+      ctx.beginPath();
+      ctx.moveTo(this.x - cam.x + i, this.y - cam.y);
+      ctx.lineTo(this.x - cam.x + i, this.y - cam.y + this.h);
+      ctx.stroke();
+    }
+  }
+}
+
+// -------- Current: push forces on player inside region. --------
+class Current {
+  constructor(x, y, w, h, dx, dy) {
+    this.x = x; this.y = y; this.w = w; this.h = h;
+    this.dx = dx; this.dy = dy;
+    this.phase = 0;
+    this.kind = "current";
+  }
+  update(dt, game) {
+    this.phase += dt;
+    const p = game.level.player;
+    if (!p || !p.alive) return;
+    if (p.x > this.x && p.x < this.x + this.w &&
+        p.y > this.y && p.y < this.y + this.h) {
+      p.applyCurrent(this.dx, this.dy);
+    }
+  }
+  onPulse() {}
+  render(ctx, cam) {
+    // barely visible streamers showing direction (only when near pulse/bloom)
+    const sx = this.x - cam.x, sy = this.y - cam.y;
+    ctx.globalCompositeOperation = "lighter";
+    ctx.strokeStyle = "rgba(118, 226, 255, 0.08)";
+    ctx.lineWidth = 1;
+    const len = Math.hypot(this.dx, this.dy);
+    const ux = this.dx / (len || 1), uy = this.dy / (len || 1);
+    for (let i = 0; i < 8; i++) {
+      const px = sx + ((i * 17 + this.phase * 30 * ux) % this.w);
+      const py = sy + ((i * 23 + this.phase * 30 * uy) % this.h);
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.lineTo(px + ux * 8, py + uy * 8);
+      ctx.stroke();
+    }
+    ctx.globalCompositeOperation = "source-over";
+  }
+}
+
+// -------- Lurker: a creature that wakes to sound. Chases pulses, kills on touch. --------
+class Lurker {
+  constructor(x, y) {
+    this.x = x; this.y = y;
+    this.vx = 0; this.vy = 0;
+    this.r = 14;
+    this.alertness = 0;           // 0..1 — how hunting it is
+    this.target = null;
+    this.wanderAngle = Math.random() * TAU;
+    this.wanderT = 0;
+    this.revealed = 0;
+    this.kind = "lurker";
+  }
+  update(dt, game) {
+    this.revealed = Math.max(0, this.revealed - dt * 0.35);
+    const p = game.level.player;
+
+    // Decay alertness
+    this.alertness = Math.max(0, this.alertness - dt * 0.2);
+
+    // Wander when calm
+    this.wanderT += dt;
+    if (this.wanderT > 1.5) {
+      this.wanderT = 0;
+      this.wanderAngle += randRange(-0.8, 0.8);
+    }
+
+    // Pursue target if alert
+    if (this.target) {
+      const dx = this.target.x - this.x, dy = this.target.y - this.y;
+      const d = Math.hypot(dx, dy);
+      if (d < 4) { this.target = null; }
+      else {
+        this.vx = lerp(this.vx, (dx / d) * 70 * this.alertness, 0.08);
+        this.vy = lerp(this.vy, (dy / d) * 70 * this.alertness, 0.08);
+      }
+    } else {
+      const sp = 20 * (1 - this.alertness) + 35 * this.alertness;
+      this.vx = lerp(this.vx, Math.cos(this.wanderAngle) * sp, 0.04);
+      this.vy = lerp(this.vy, Math.sin(this.wanderAngle) * sp, 0.04);
+    }
+
+    this.x += this.vx * dt;
+    this.y += this.vy * dt;
+
+    // Crude containment in level
+    const lv = game.level;
+    this.x = clamp(this.x, lv.bounds.x + 20, lv.bounds.x + lv.bounds.w - 20);
+    this.y = clamp(this.y, lv.bounds.y + 20, lv.bounds.y + lv.bounds.h - 20);
+
+    // Touch kills
+    if (p && p.alive && dist(p, this) < this.r + 8 && p.stillness <= 0) {
+      p.harm(game, "taken");
+    }
+  }
+  onPulse(p) {
+    // If player isn't still, we hear the pulse and start chasing it.
+    const game = window.__echoGame;
+    const player = game?.level?.player;
+    if (player && player.stillness > 0 && p.source === "player") return;
+    this.revealed = 1;
+    this.alertness = Math.min(1, this.alertness + 0.7 * (p.strength ?? 1));
+    // Hunt toward the source.
+    if (p.source === "player" && player) {
+      this.target = { x: player.x + randRange(-40, 40), y: player.y + randRange(-40, 40) };
+    } else {
+      this.target = { x: p.x, y: p.y };
+    }
+  }
+  render(ctx, cam) {
+    const sx = this.x - cam.x, sy = this.y - cam.y;
+    const a = 0.15 + 0.85 * Math.max(this.revealed, this.alertness * 0.25);
+    if (a < 0.05) return;
+
+    ctx.globalCompositeOperation = "lighter";
+    const grad = ctx.createRadialGradient(sx, sy, 0, sx, sy, this.r * 3);
+    const col = this.alertness > 0.4
+      ? `rgba(255, 143, 163, ${0.3 * a})`
+      : `rgba(155, 180, 214, ${0.18 * a})`;
+    grad.addColorStop(0, col);
+    grad.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.arc(sx, sy, this.r * 3, 0, TAU); ctx.fill();
+    ctx.globalCompositeOperation = "source-over";
+
+    // tentacle-y shape — rings
+    ctx.strokeStyle = this.alertness > 0.5
+      ? `rgba(255, 143, 163, ${a})`
+      : `rgba(155, 180, 214, ${a})`;
+    ctx.lineWidth = 1.5;
+    for (let i = 0; i < 3; i++) {
+      const rr = this.r - i * 3;
+      ctx.beginPath();
+      for (let j = 0; j <= 20; j++) {
+        const ang = (j / 20) * TAU;
+        const wobble = Math.sin(ang * 4 + performance.now() / 300 + i) * 1.5;
+        const x = sx + Math.cos(ang) * (rr + wobble);
+        const y = sy + Math.sin(ang) * (rr + wobble);
+        if (j === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.closePath(); ctx.stroke();
+    }
+    // eye
+    if (this.alertness > 0.3) {
+      ctx.fillStyle = `rgba(255, 143, 163, ${a})`;
+      ctx.beginPath(); ctx.arc(sx, sy, 2, 0, TAU); ctx.fill();
+    }
+  }
+}
+
+// -------- Drifter: harmless glowing creature that reacts to pulses (atmosphere). --------
+class Drifter {
+  constructor(x, y) {
+    this.x = x; this.y = y;
+    this.vx = randRange(-10, 10);
+    this.vy = randRange(-10, 10);
+    this.r = randRange(1.5, 3);
+    this.revealed = 0;
+    this.color = Math.random() < 0.3
+      ? "rgba(255, 211, 154, 1)"
+      : "rgba(118, 226, 255, 1)";
+    this.phase = Math.random() * TAU;
+    this.kind = "drifter";
+  }
+  update(dt) {
+    this.revealed = Math.max(0, this.revealed - dt * 0.3);
+    this.phase += dt * 2;
+    this.x += this.vx * dt + Math.sin(this.phase) * 0.2;
+    this.y += this.vy * dt + Math.cos(this.phase * 1.3) * 0.2;
+    this.vx *= 0.995; this.vy *= 0.995;
+  }
+  onPulse() {
+    this.revealed = 1;
+    this.vx += randRange(-30, 30);
+    this.vy += randRange(-30, 30);
+  }
+  render(ctx, cam) {
+    const sx = this.x - cam.x, sy = this.y - cam.y;
+    const a = 0.1 + 0.9 * this.revealed;
+    if (a < 0.04) return;
+    ctx.globalCompositeOperation = "lighter";
+    const grad = ctx.createRadialGradient(sx, sy, 0, sx, sy, this.r * 6);
+    grad.addColorStop(0, this.color.replace(", 1)", `, ${0.6 * a})`));
+    grad.addColorStop(1, this.color.replace(", 1)", ", 0)"));
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.arc(sx, sy, this.r * 6, 0, TAU); ctx.fill();
+    ctx.fillStyle = this.color.replace(", 1)", `, ${a})`);
+    ctx.beginPath(); ctx.arc(sx, sy, this.r, 0, TAU); ctx.fill();
+    ctx.globalCompositeOperation = "source-over";
+  }
+}
+
+// -------- Spike: fixed hazard revealed by pulse. --------
+class Spike {
+  constructor(x, y, w = 16, h = 10) {
+    this.x = x; this.y = y; this.w = w; this.h = h;
+    this.revealed = 0;
+    this.kind = "spike";
+  }
+  update(dt, game) {
+    this.revealed = Math.max(0, this.revealed - dt * 0.3);
+    const p = game.level.player;
+    if (p && p.alive && p.x > this.x && p.x < this.x + this.w
+        && p.y + 5 > this.y && p.y - 5 < this.y + this.h) {
+      p.harm(game, "pierced");
+    }
+  }
+  onPulse() { this.revealed = 1; }
+  render(ctx, cam) {
+    const a = 0.15 + 0.85 * this.revealed;
+    if (a < 0.04) return;
+    ctx.fillStyle = `rgba(255, 143, 163, ${a * 0.6})`;
+    const sx = this.x - cam.x, sy = this.y - cam.y;
+    const spikes = Math.max(2, Math.floor(this.w / 6));
+    ctx.beginPath();
+    for (let i = 0; i < spikes; i++) {
+      const x = sx + (i / spikes) * this.w;
+      ctx.moveTo(x, sy + this.h);
+      ctx.lineTo(x + (this.w / spikes) / 2, sy);
+      ctx.lineTo(x + this.w / spikes, sy + this.h);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = `rgba(255, 143, 163, ${a})`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+}
+
+// -------- Goal: exit of level (the descent onward). --------
+class Goal {
+  constructor(x, y) {
+    this.x = x; this.y = y;
+    this.r = 28;
+    this.phase = 0;
+    this.revealed = 0;
+    this.kind = "goal";
+    this.triggered = false;
+  }
+  update(dt, game) {
+    this.revealed = Math.max(0, this.revealed - dt * 0.25);
+    this.phase += dt;
+    const p = game.level.player;
+    if (!this.triggered && p && p.alive && dist(p, this) < this.r) {
+      // Requirements from level.
+      if (game.level.canComplete()) {
+        this.triggered = true;
+        game.onLevelComplete();
+      }
+    }
+  }
+  onPulse() { this.revealed = 1; }
+  render(ctx, cam) {
+    const sx = this.x - cam.x, sy = this.y - cam.y;
+    const a = 0.25 + 0.75 * Math.max(this.revealed, 0.4);
+    const pulse = 0.5 + 0.5 * Math.sin(this.phase * 1.5);
+    ctx.globalCompositeOperation = "lighter";
+    const grad = ctx.createRadialGradient(sx, sy, 0, sx, sy, this.r * 2);
+    grad.addColorStop(0, `rgba(255, 211, 154, ${0.35 * a * (0.6 + 0.4 * pulse)})`);
+    grad.addColorStop(1, "rgba(255, 211, 154, 0)");
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.arc(sx, sy, this.r * 2, 0, TAU); ctx.fill();
+    ctx.strokeStyle = `rgba(255, 211, 154, ${a})`;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(sx, sy, this.r + pulse * 3, 0, TAU); ctx.stroke();
+    ctx.beginPath(); ctx.arc(sx, sy, this.r - 8 - pulse * 2, 0, TAU); ctx.stroke();
+    ctx.globalCompositeOperation = "source-over";
+  }
+}
+
+// -------- ChorusBoss: the final act — a silent being you must "sing" into being. --------
+// It doesn't move until harmonized by sustained bloom at correct positions.
+class ChorusBoss {
+  constructor(cx, cy) {
+    this.x = cx; this.y = cy;
+    this.r = 60;
+    this.phase = 0;
+    this.state = "silent";    // silent -> listening -> singing -> chorus
+    this.nodes = [];          // sub-resonators around it
+    this.harmonized = 0;
+    this.kind = "boss";
+    this.revealed = 0.3;
+    // Place 5 nodes around the boss that must be individually harmonized.
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * TAU - Math.PI / 2;
+      this.nodes.push({
+        x: cx + Math.cos(a) * 180,
+        y: cy + Math.sin(a) * 180,
+        charge: 0, done: false, a,
+      });
+    }
+  }
+  update(dt, game) {
+    this.phase += dt;
+    const p = game.level.player;
+    // Each node charges when bloom is active nearby.
+    for (const n of this.nodes) {
+      if (n.done) continue;
+      if (p && p.bloomActive && dist(p, n) < 110) {
+        n.charge += dt * 0.35;
+        if (n.charge >= 1) {
+          n.done = true;
+          this.harmonized++;
+          audio.sfxCollect();
+          game.particles.burst(n.x, n.y, 50, {
+            speedMin: 40, speedMax: 180, lifeMin: 0.6, lifeMax: 1.8,
+            color: "rgba(255, 211, 154, 0.9)", drag: 0.9,
+          });
+          if (this.harmonized >= this.nodes.length) {
+            this.state = "chorus";
+            game.level.onBossHarmonized();
+          }
+        }
+      } else {
+        n.charge = Math.max(0, n.charge - dt * 0.08);
+      }
+    }
+  }
+  onPulse() { this.revealed = Math.min(1, this.revealed + 0.25); }
+  render(ctx, cam) {
+    const sx = this.x - cam.x, sy = this.y - cam.y;
+    const breathe = 0.5 + 0.5 * Math.sin(this.phase * 0.6);
+    const a = this.revealed;
+    ctx.globalCompositeOperation = "lighter";
+    // core
+    const grad = ctx.createRadialGradient(sx, sy, 0, sx, sy, this.r * 3);
+    grad.addColorStop(0, `rgba(118, 226, 255, ${0.2 * a * (0.6 + 0.4 * breathe)})`);
+    grad.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.arc(sx, sy, this.r * 3, 0, TAU); ctx.fill();
+
+    // Rings
+    ctx.strokeStyle = `rgba(118, 226, 255, ${a})`;
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 5; i++) {
+      ctx.beginPath();
+      ctx.arc(sx, sy, this.r + i * 8 + breathe * 6, 0, TAU);
+      ctx.globalAlpha = (a * (1 - i / 5)) * 0.6;
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    // Nodes
+    for (const n of this.nodes) {
+      const nx = n.x - cam.x, ny = n.y - cam.y;
+      ctx.strokeStyle = n.done
+        ? `rgba(255, 211, 154, ${a})`
+        : `rgba(155, 180, 214, ${a})`;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(nx, ny, 14, 0, TAU); ctx.stroke();
+      if (n.charge > 0) {
+        ctx.strokeStyle = `rgba(255, 211, 154, ${a})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(nx, ny, 18, -Math.PI / 2, -Math.PI / 2 + n.charge * TAU);
+        ctx.stroke();
+      }
+      if (n.done) {
+        const ng = ctx.createRadialGradient(nx, ny, 0, nx, ny, 40);
+        ng.addColorStop(0, `rgba(255, 211, 154, 0.4)`);
+        ng.addColorStop(1, "rgba(255, 211, 154, 0)");
+        ctx.fillStyle = ng;
+        ctx.beginPath(); ctx.arc(nx, ny, 40, 0, TAU); ctx.fill();
+      }
+    }
+    ctx.globalCompositeOperation = "source-over";
+  }
+}
+
+
+// ===== level.js =====
+// Level — owns solids, entities, pulses, background params, scene.
+// A pulse is an expanding circle that "reveals" any entity/solid it touches.
+
+class Level {
+  constructor(def, player, onWhisper) {
+    this.def = def;
+    this.solids = def.solids.map(s => ({ ...s }));
+    this.entities = def.entities.slice();
+    this.pulses = [];
+    this.surfaceReveals = new Map(); // solid-index -> decay time remaining
+    this.player = player;
+    this.onWhisper = onWhisper;
+    this.bounds = def.bounds;
+    this.scene = def.scene;
+    this.palette = def.palette;
+    this.depth = def.depth ?? 0;
+    this.title = def.title;
+    this.modeName = def.modeName;
+    this.whisper = def.whisper;
+    this.ambient = def.ambient ?? 0.08; // how much of world is passively visible
+    this.complete = false;
+    this.flags = new Set();
+    this.hintShown = false;
+    this.spawn = def.spawn;
+    this.extraUpdate = def.extraUpdate; // optional hook
+    // Reset player to spawn.
+    player.x = def.spawn.x;
+    player.y = def.spawn.y;
+    player.vx = 0; player.vy = 0;
+    player.swimming = !!def.swim;
+    player.alive = true;
+    player.breath = 1;
+    // Grant abilities defined by this level (cumulative).
+    for (const a of def.abilities ?? []) player.unlock(a);
+  }
+
+  // A newly emitted pulse is already in this.pulses.
+  update(dt, game) {
+    // Update pulses.
+    for (const p of this.pulses) {
+      p.radius += p.speed * dt;
+      p.life += dt;
+      this._pulseSurfaces(p);
+      this._pulseEntities(p, game);
+    }
+    this.pulses = this.pulses.filter(p => p.life < p.maxLife && p.radius < p.maxRadius + 80);
+
+    // Decay surface reveals.
+    for (const [k, v] of this.surfaceReveals) {
+      const nv = v - dt;
+      if (nv <= 0) this.surfaceReveals.delete(k);
+      else this.surfaceReveals.set(k, nv);
+    }
+
+    // Update entities.
+    for (const e of this.entities) e.update(dt, game);
+
+    // Fragments: player pickup
+    for (const e of this.entities) {
+      if (e.kind === "fragment" && !e.collected && e.collidesPlayer(this.player)) {
+        e.collected = true;
+        this.player.collected++;
+        game.onFragmentCollected(e);
+      }
+    }
+
+    // Remove collected fragments from active drawing list.
+    this.entities = this.entities.filter(e => !(e.kind === "fragment" && e.collected));
+
+    if (this.extraUpdate) this.extraUpdate(dt, game, this);
+  }
+
+  _pulseSurfaces(p) {
+    // Mark each solid that the pulse wavefront is crossing.
+    for (let i = 0; i < this.solids.length; i++) {
+      const s = this.solids[i];
+      const cx = clamp(p.x, s.x, s.x + s.w);
+      const cy = clamp(p.y, s.y, s.y + s.h);
+      const d = Math.hypot(p.x - cx, p.y - cy);
+      const band = 24; // wave thickness that "paints" visibility
+      if (d >= p.radius - band && d <= p.radius + band) {
+        this.surfaceReveals.set(i, 2.2);
+      }
+    }
+  }
+
+  _pulseEntities(p, game) {
+    for (const e of this.entities) {
+      const d = Math.hypot(e.x - p.x, e.y - p.y);
+      const band = 28;
+      if (d >= p.radius - band && d <= p.radius + band) {
+        if (e.onPulse) e.onPulse(p, game);
+      }
+    }
+  }
+
+  interact(player, game) {
+    // Check fragments, resonators etc. triggered via the goal.
+    // (Collision done inside entity updates above)
+  }
+
+  canComplete() {
+    // A level is complete when reaching goal and fulfilling fragment req (if any).
+    if (this.def.requireFragments) {
+      const remaining = this.entities.filter(e => e.kind === "fragment").length;
+      return remaining === 0;
+    }
+    return true;
+  }
+
+  onResonatorTriggered(res) {
+    // Open gates that match this resonator's group if defined.
+    const group = res.group ?? "default";
+    for (const g of this.entities) {
+      if (g.kind === "gate" && (g.group === group || g.group === "default")) g.open = true;
+    }
+    this.flags.add("resonator-" + this.entities.indexOf(res));
+    // Remove resonator from solids so player can pass its spot? (they aren't solid)
+  }
+
+  onBossHarmonized() {
+    this.flags.add("boss-done");
+    // Reveal the goal (add to entities if not already there).
+    if (!this.entities.find(e => e.kind === "goal")) {
+      this.entities.push(new Goal(this.def.bossGoal.x, this.def.bossGoal.y));
+    }
+  }
+
+  // Raw surface visibility for renderer.
+  surfaceAlpha(i) {
+    const t = this.surfaceReveals.get(i);
+    if (!t) return this.ambient;
+    // 2.2s decay; fresh = 1, old = ambient.
+    const frac = clamp(t / 2.2, 0, 1);
+    return clamp(this.ambient + frac, 0, 1);
+  }
+}
+
+
+// ===== levels.js =====
+// Level definitions. Each: scene (audio), palette, solids (geometry),
+// entities (world), and abilities granted.
+
+// Tile helper: a rect solid.
+const R = (x, y, w, h) => ({ x, y, w, h });
+
+// Palette format: background (top, bottom), surface tint, wave color.
+const PALETTES = {
+  shallow: {
+    bg0: "#061d28",
+    bg1: "#010508",
+    surface: "rgba(118, 226, 255, 1)",
+    wave:    "rgba(176, 240, 255, 1)",
+    accent:  "rgba(255, 244, 220, 1)",
+  },
+  kelp: {
+    bg0: "#07220f",
+    bg1: "#01080a",
+    surface: "rgba(147, 214, 148, 1)",
+    wave:    "rgba(205, 244, 185, 1)",
+    accent:  "rgba(255, 220, 158, 1)",
+  },
+  reef: {
+    bg0: "#22103a",
+    bg1: "#04010d",
+    surface: "rgba(214, 147, 255, 1)",
+    wave:    "rgba(240, 186, 255, 1)",
+    accent:  "rgba(255, 172, 208, 1)",
+  },
+  trench: {
+    bg0: "#2a0910",
+    bg1: "#050104",
+    surface: "rgba(255, 143, 110, 1)",
+    wave:    "rgba(255, 186, 138, 1)",
+    accent:  "rgba(255, 118, 98, 1)",
+  },
+  abyss: {
+    bg0: "#060012",
+    bg1: "#000000",
+    surface: "rgba(180, 150, 255, 1)",
+    wave:    "rgba(220, 200, 255, 1)",
+    accent:  "rgba(255, 220, 200, 1)",
+  },
+};
+
+// ========================================================================
+// LEVEL 1 — SHALLOWS (Ionian). Tutorial. Few enemies. Pulse + movement.
+// ========================================================================
+function buildShallows() {
+  const bounds = { x: -200, y: -400, w: 2800, h: 1200 };
+  const solids = [
+    // Floor
+    R(-200, 600, 1200, 80),
+    R(1120, 560, 500, 40),
+    R(1700, 520, 400, 40),
+    R(2160, 480, 500, 200),
+    // Ceiling/platforms
+    R(300, 340, 120, 20),
+    R(540, 280, 120, 20),
+    R(780, 240, 140, 20),
+    R(1000, 340, 100, 20),
+    R(1800, 360, 80, 20),
+    R(2000, 300, 80, 20),
+    // left wall
+    R(-200, -400, 40, 1200),
+    R(2600, -400, 60, 1200),
+  ];
+  const entities = [
+    new Fragment(560, 250, "a current of light, remembered."),
+    new Fragment(1150, 520, "i was deeper once."),
+    new Fragment(2050, 270, "the surface is only a rumor."),
+    new Goal(2420, 420),
+    new Drifter(400, 500), new Drifter(700, 400), new Drifter(1200, 300),
+    new Drifter(1600, 500), new Drifter(2000, 440),
+  ];
+  return {
+    title: "Shallows",
+    modeName: "Ionian · C",
+    whisper: "listen for the shape of what you cannot see",
+    depth: 12,
+    bounds, solids, entities,
+    spawn: { x: 40, y: 550 },
+    palette: PALETTES.shallow,
+    abilities: [],
+    requireFragments: false,
+    ambient: 0.08,
+    scene: {
+      root: 60, mode: "ionian", tempo: 62, bar: 4,
+      chord: [0, 2, 4, 6],
+      bassPattern: [0, 4, 2, 5], bassDouble: false,
+      arpPattern: [null, 4, null, 2, 6, null, 4, null],
+    },
+  };
+}
+
+// ========================================================================
+// LEVEL 2 — KELP FOREST (Dorian). Currents, first resonator puzzles.
+// ========================================================================
+function buildKelp() {
+  const bounds = { x: -200, y: -600, w: 3200, h: 1400 };
+  const solids = [
+    R(-200, 620, 600, 100),
+    R(500, 520, 260, 20),
+    R(880, 600, 360, 20),
+    R(1340, 460, 200, 20),
+    R(1620, 380, 180, 20),
+    R(1880, 560, 240, 20),
+    R(2240, 440, 260, 20),
+    R(2580, 560, 420, 140),
+    // decorative/walls
+    R(-200, -600, 40, 1400),
+    R(3000, -600, 60, 1400),
+    // ceiling bits
+    R(700, 200, 100, 20),
+    R(1200, 120, 180, 20),
+    R(1700, 100, 220, 20),
+    R(2200, 180, 120, 20),
+    // mid-wall
+    R(2100, 620, 40, 80),
+  ];
+  const entities = [
+    // Currents that push upward through gap
+    new Current(1500, 300, 140, 420, 0, -120),
+    new Current(2050, 300, 100, 320, 0, -90),
+    // Drifters = ambience
+    new Drifter(300, 500), new Drifter(900, 400), new Drifter(1400, 300),
+    new Drifter(1900, 400), new Drifter(2500, 300),
+    // Resonator + gate
+    new Resonator(1680, 320),
+    new Gate(2080, 520, 20, 100, "default"),
+    // Fragments
+    new Fragment(600, 480, "the kelp remembers rhythm even when the tide forgets."),
+    new Fragment(1420, 420, "to sing is to measure the distance."),
+    new Fragment(2280, 400, "you were a voice before you were a shape."),
+    // One slow lurker
+    new Lurker(1100, 520),
+    new Goal(2800, 500),
+  ];
+  return {
+    title: "Kelp Forest",
+    modeName: "Dorian · D",
+    whisper: "hold your breath in the currents. hum into the stone.",
+    depth: 48,
+    bounds, solids, entities,
+    spawn: { x: 40, y: 560 },
+    palette: PALETTES.kelp,
+    swim: true,
+    abilities: ["bloom"],
+    requireFragments: false,
+    ambient: 0.05,
+    scene: {
+      root: 62, mode: "dorian", tempo: 70, bar: 4,
+      chord: [0, 2, 4],
+      bassPattern: [0, 3, 1, 4],
+      arpPattern: [0, null, 4, 2, null, 5, null, 3],
+    },
+  };
+}
+
+// ========================================================================
+// LEVEL 3 — REEF (Lydian). Stealth matters. Lurkers. Stillness ability.
+// ========================================================================
+function buildReef() {
+  const bounds = { x: -200, y: -600, w: 3400, h: 1400 };
+  const solids = [
+    R(-200, 620, 700, 100),
+    R(600, 540, 320, 20),
+    R(1000, 460, 200, 20),
+    R(1260, 380, 200, 20),
+    R(1520, 460, 180, 20),
+    R(1740, 540, 200, 20),
+    R(2000, 460, 200, 20),
+    R(2280, 380, 240, 20),
+    R(2600, 480, 240, 20),
+    R(2900, 580, 400, 140),
+    R(-200, -600, 40, 1400),
+    R(3200, -600, 60, 1400),
+    // Pillars to hide behind
+    R(1100, 480, 40, 80),
+    R(1400, 220, 40, 160),
+    R(1780, 340, 40, 200),
+    R(2320, 200, 40, 180),
+    R(2680, 320, 40, 160),
+  ];
+  const entities = [
+    // Ambient drifters
+    new Drifter(300, 500), new Drifter(900, 400), new Drifter(1400, 300),
+    new Drifter(1900, 400), new Drifter(2500, 300), new Drifter(3000, 400),
+    // Lurkers (hear pulses, hunt)
+    new Lurker(1100, 440),
+    new Lurker(1800, 460),
+    new Lurker(2450, 440),
+    // Spikes
+    new Spike(960, 620, 40), new Spike(1700, 620, 60), new Spike(2550, 620, 80),
+    // Fragments
+    new Fragment(840, 500, "the reef holds the loudest silence."),
+    new Fragment(1420, 340, "to be still is to be a stone. stones are not eaten."),
+    new Fragment(2370, 340, "the mouth wants the shape of a word."),
+    // Goal
+    new Goal(3100, 520),
+  ];
+  return {
+    title: "Reef",
+    modeName: "Lydian · E",
+    whisper: "do not wake them. learn to be unheard.",
+    depth: 142,
+    bounds, solids, entities,
+    spawn: { x: 40, y: 560 },
+    palette: PALETTES.reef,
+    abilities: ["stillness"],
+    requireFragments: false,
+    ambient: 0.03,
+    scene: {
+      root: 64, mode: "lydian", tempo: 78, bar: 4,
+      chord: [0, 2, 4, 6],
+      bassPattern: [0, 4, 3, 6],
+      arpPattern: [6, null, 2, 4, null, 5, 3, null],
+    },
+  };
+}
+
+// ========================================================================
+// LEVEL 4 — TRENCH (Phrygian). Pulse itself becomes a tension. Heavy lurkers.
+// ========================================================================
+function buildTrench() {
+  const bounds = { x: -200, y: -800, w: 3600, h: 2000 };
+  const solids = [
+    R(-200, 620, 500, 100),
+    R(400, 540, 180, 20),
+    R(640, 460, 180, 20),
+    R(880, 380, 180, 20),
+    R(1120, 300, 180, 20),
+    R(1360, 220, 180, 20),
+    R(1600, 140, 180, 20),
+    R(1840, 80, 180, 20),
+    R(2080, 140, 180, 20),
+    R(2320, 220, 180, 20),
+    R(2560, 300, 180, 20),
+    R(2800, 400, 220, 20),
+    R(3080, 520, 220, 140),
+    R(-200, -800, 40, 2000),
+    R(3300, -800, 60, 2000),
+    // hazard row
+    R(700, 620, 60, 100),
+    R(1000, 620, 60, 100),
+    R(1300, 620, 60, 100),
+  ];
+  const entities = [
+    // Downward currents + upward gaps
+    new Current(900, -200, 180, 820, 0, 60),
+    new Current(1600, -600, 200, 820, 0, -90),
+    new Current(2320, -300, 200, 620, 0, 70),
+    // Lurkers — lots.
+    new Lurker(700, 480), new Lurker(1200, 300), new Lurker(1700, 180),
+    new Lurker(2150, 120), new Lurker(2600, 320), new Lurker(2900, 420),
+    // Spikes
+    new Spike(700, 720, 40), new Spike(1000, 720, 40), new Spike(1300, 720, 40),
+    // Resonator + gate combo
+    new Resonator(1840, 40),
+    new Gate(2780, 320, 20, 100, "default"),
+    // Fragments hidden behind current
+    new Fragment(980, 340, "descent is not falling — it is letting go."),
+    new Fragment(1700, 100, "the trench was a mouth once. it closed around a question."),
+    new Fragment(2620, 260, "we called to each other. we answered with teeth."),
+    new Fragment(2900, 380, "beneath this, a voice that does not know it is a voice."),
+    new Drifter(500, 450), new Drifter(1500, 200), new Drifter(2400, 250),
+    new Goal(3200, 480),
+  ];
+  return {
+    title: "Trench",
+    modeName: "Phrygian · F♯",
+    whisper: "every sound is a door. some doors open the wrong way.",
+    depth: 620,
+    bounds, solids, entities,
+    spawn: { x: 40, y: 560 },
+    palette: PALETTES.trench,
+    swim: true,
+    abilities: [],
+    requireFragments: false,
+    ambient: 0.02,
+    scene: {
+      root: 54, mode: "phrygian", tempo: 84, bar: 4,
+      chord: [0, 2, 4],
+      bassPattern: [0, 1, 4, 2],
+      arpPattern: [0, 4, 1, 2, 5, 1, 3, null],
+    },
+  };
+}
+
+// ========================================================================
+// LEVEL 5 — ABYSS (Locrian → Chorus). Boss. The silent being.
+// ========================================================================
+function buildAbyss() {
+  const bounds = { x: -200, y: -400, w: 2400, h: 1600 };
+  // Boss in center. Platforms around it.
+  const solids = [
+    // Outer frame
+    R(-200, 900, 2600, 200),
+    R(-200, -400, 2600, 100),
+    R(-200, -400, 40, 1400),
+    R(2360, -400, 40, 1400),
+    // Inner ring platforms
+    R(200, 700, 200, 20),
+    R(480, 620, 180, 20),
+    R(740, 540, 180, 20),
+    R(960, 460, 160, 20),
+    R(1180, 460, 160, 20),
+    R(1420, 540, 180, 20),
+    R(1680, 620, 180, 20),
+    R(1960, 700, 200, 20),
+    // Top platforms for upper nodes
+    R(500, 300, 160, 20),
+    R(900, 200, 200, 20),
+    R(1240, 200, 200, 20),
+    R(1680, 300, 160, 20),
+    // Side ladders
+    R(180, 500, 40, 120),
+    R(2140, 500, 40, 120),
+  ];
+  const boss = new ChorusBoss(1080, 480);
+  const entities = [
+    boss,
+    new Fragment(600, 270, "the chorus is not a sound. it is an agreement."),
+    new Fragment(1400, 160, "i was alone because i never answered."),
+    new Fragment(1780, 270, "sing me and i will sing you."),
+    new Drifter(400, 300), new Drifter(1800, 400), new Drifter(1100, 800),
+    new Drifter(700, 750), new Drifter(1500, 750),
+  ];
+  return {
+    title: "Abyss",
+    modeName: "Chorus · G",
+    whisper: "it is waiting. harmonize each of its voices.",
+    depth: 4000,
+    bounds, solids, entities,
+    spawn: { x: 60, y: 850 },
+    palette: PALETTES.abyss,
+    swim: true,
+    abilities: [],
+    requireFragments: false,
+    ambient: 0.03,
+    bossGoal: { x: 1080, y: 480 },
+    scene: {
+      root: 55, mode: "chorus", tempo: 58, bar: 6,
+      chord: [0, 2, 4, 6],
+      bassPattern: [0, 4, 2, 6, 4, 2],
+      arpPattern: [0, 4, null, 6, null, 2, 4, null, 7, 4, null, 5],
+    },
+  };
+}
+
+const LEVELS = [
+  buildShallows,
+  buildKelp,
+  buildReef,
+  buildTrench,
+  buildAbyss,
+];
+
+const ENDING_LINES = [
+  "you sang it back.",
+  "for the first time since the surface,",
+  "the dark was not empty.",
+  "",
+  "it was a chord.",
+  "",
+  "and you were one of its voices.",
+];
+
+
+// ===== player.js =====
+// The Listener. Movement, abilities, pulses.
+
+class Player {
+  constructor(x, y) {
+    this.x = x; this.y = y;
+    this.w = 10; this.h = 10;          // compact collider
+    this.vx = 0; this.vy = 0;
+    this.facing = 1;
+    this.onGround = false;
+    this.coyote = 0;
+    this.jumpBuf = 0;
+    this.alive = true;
+    this.breath = 1;                    // 0..1 — depletes in silence
+    this.lastPulseTime = -999;
+    this.lastSoundTime = -999;          // any sonic action
+    this.stillness = 0;                 // seconds remaining of stealth
+    this.stillnessCd = 0;
+    this.pulseCd = 0;
+    this.pulses = 0;
+    this.collected = 0;
+    this.time = 0;
+    this.bloomActive = null;            // audio handle
+    this.bloomTime = 0;
+    this.abilities = new Set(["pulse"]); // unlocked in levels: bloom, stillness, chorus
+    this.swimming = false;              // some levels are water (reduced gravity)
+    this.phase = 0;                     // oscillating visual
+    this.recentCurrent = { x: 0, y: 0 };
+    this._state = "idle";
+    this.ascend = 0;                     // used in finale
+  }
+
+  unlock(a) { this.abilities.add(a); }
+
+  hasAbility(a) { return this.abilities.has(a); }
+
+  update(dt, input, level, game) {
+    if (!this.alive) return;
+    this.time += dt;
+    this.phase += dt;
+
+    const move = (input.isDown("right") ? 1 : 0) - (input.isDown("left") ? 1 : 0);
+
+    // Movement - ambient water: slower, floaty.
+    const accel = this.swimming ? 500 : 900;
+    const maxSpeed = this.swimming ? 110 : 150;
+    const drag = this.swimming ? 0.84 : 0.82;
+
+    if (move !== 0) {
+      this.vx = approach(this.vx, move * maxSpeed, accel * dt);
+      this.facing = move;
+    } else {
+      this.vx *= Math.pow(drag, dt * 60);
+      if (Math.abs(this.vx) < 2) this.vx = 0;
+    }
+
+    // Jump / rise
+    const grav = this.swimming ? 260 : 880;
+    const jumpV = this.swimming ? -260 : -360;
+    const maxFall = this.swimming ? 220 : 520;
+
+    if (input.wasPressed("up")) this.jumpBuf = 0.15;
+    this.jumpBuf = Math.max(0, this.jumpBuf - dt);
+    this.coyote = Math.max(0, this.coyote - dt);
+
+    if (this.jumpBuf > 0 && (this.onGround || this.coyote > 0)) {
+      this.vy = jumpV;
+      this.onGround = false;
+      this.coyote = 0;
+      this.jumpBuf = 0;
+      audio.sfxJump();
+      this.lastSoundTime = this.time;
+      game.particles.burst(this.x, this.y + this.h / 2, 6, {
+        speedMin: 30, speedMax: 80, lifeMin: 0.2, lifeMax: 0.5,
+        sizeMin: 1, sizeMax: 2,
+        color: "rgba(118, 226, 255, 0.7)", drag: 0.86,
+      });
+    }
+    // Variable jump
+    if (!input.isDown("up") && this.vy < -120) this.vy = Math.max(this.vy, -120);
+
+    // Down input: fast-fall in air; in water it descends
+    if (this.swimming && input.isDown("down")) this.vy += grav * 1.8 * dt;
+    else this.vy += grav * dt;
+    this.vy = Math.min(this.vy, maxFall);
+
+    // Currents (from level)
+    this.vx += this.recentCurrent.x * dt;
+    this.vy += this.recentCurrent.y * dt;
+    this.recentCurrent.x *= 0.9;
+    this.recentCurrent.y *= 0.9;
+
+    // --- Abilities ---
+    this.pulseCd = Math.max(0, this.pulseCd - dt);
+    this.stillnessCd = Math.max(0, this.stillnessCd - dt);
+    this.stillness = Math.max(0, this.stillness - dt);
+
+    if ((input.wasPressed("pulse") || input.mouse.clickedThisFrame) && this.pulseCd <= 0) {
+      this._emitPulse(level, game, 1);
+      this.pulseCd = 0.35;
+    }
+
+    if (this.hasAbility("bloom")) {
+      if (input.isDown("bloom")) {
+        if (!this.bloomActive) {
+          this.bloomActive = audio.sfxBloom();
+          this.bloomTime = 0;
+        }
+        this.bloomTime += dt;
+        // Sustained bloom = continuous low-intensity pulse emission.
+        if (this.bloomTime > 0.12) {
+          this.bloomTime -= 0.12;
+          this._emitPulse(level, game, 0.45, true);
+        }
+      } else if (this.bloomActive) {
+        this.bloomActive.stop();
+        this.bloomActive = null;
+      }
+    }
+
+    if (this.hasAbility("stillness") && input.wasPressed("still") && this.stillnessCd <= 0) {
+      this.stillness = 2.5;
+      this.stillnessCd = 8;
+      game.particles.burst(this.x, this.y, 14, {
+        speedMin: 5, speedMax: 20, lifeMin: 0.6, lifeMax: 1.2,
+        color: "rgba(155, 180, 214, 0.35)", drag: 0.95,
+      });
+    }
+
+    // --- Physics integration with level collision ---
+    const nx = this.x + this.vx * dt;
+    const ny = this.y + this.vy * dt;
+
+    // horizontal
+    this.x = nx;
+    let hitH = this._resolveX(level);
+    if (hitH) this.vx = 0;
+
+    // vertical
+    this.onGround = false;
+    this.y = ny;
+    let hitV = this._resolveY(level);
+    if (hitV === "floor") {
+      this.vy = 0;
+      this.onGround = true;
+      this.coyote = 0.12;
+    } else if (hitV === "ceiling") {
+      this.vy = Math.max(this.vy, 0);
+    }
+
+    // --- Breath / silence ---
+    // Breath restores when making sound; drains slowly otherwise.
+    const restoreWindow = this.time - this.lastSoundTime < 2.5 ? 0.6 : -0.18;
+    this.breath = clamp(this.breath + restoreWindow * dt * 0.18, 0, 1);
+    if (this.breath <= 0.001) {
+      this.alive = false;
+      return;
+    }
+
+    // --- Level triggers ---
+    level.interact(this, game);
+  }
+
+  _resolveX(level) {
+    const me = this.aabb();
+    const boxes = this._collisionBoxes(level);
+    for (const s of boxes) {
+      if (!aabbHit(me, s)) continue;
+      if (this.vx > 0) this.x = s.x - this.w / 2;
+      else if (this.vx < 0) this.x = s.x + s.w + this.w / 2;
+      return true;
+    }
+    return false;
+  }
+  _resolveY(level) {
+    const me = this.aabb();
+    const boxes = this._collisionBoxes(level);
+    for (const s of boxes) {
+      if (!aabbHit(me, s)) continue;
+      if (this.vy > 0) { this.y = s.y - this.h / 2; return "floor"; }
+      if (this.vy < 0) { this.y = s.y + s.h + this.h / 2; return "ceiling"; }
+    }
+    return null;
+  }
+
+  _collisionBoxes(level) {
+    const out = level.solids;
+    const gates = [];
+    for (const e of level.entities) {
+      if (e.kind === "gate" && e.isSolid && e.isSolid()) {
+        gates.push({ x: e.x, y: e.y, w: e.w, h: e.h });
+      }
+    }
+    if (gates.length === 0) return out;
+    return out.concat(gates);
+  }
+
+  aabb() {
+    return { x: this.x - this.w / 2, y: this.y - this.h / 2, w: this.w, h: this.h };
+  }
+
+  // Emit a sonar pulse — reveals surfaces, alerts creatures.
+  _emitPulse(level, game, strength = 1, silent = false) {
+    level.pulses.push({
+      x: this.x, y: this.y,
+      radius: 0,
+      maxRadius: 480 * strength,
+      speed: 520,
+      life: 0,
+      maxLife: 1.1,
+      strength,
+      silent,                       // silent=bloom derivative, smaller alert radius
+      source: "player",
+    });
+    this.pulses++;
+    this.lastPulseTime = this.time;
+    this.lastSoundTime = this.time;
+    if (!silent) audio.sfxPulse(strength);
+
+    // visible ring of particles at origin
+    game.particles.burst(this.x, this.y, 10, {
+      speedMin: 20 * strength, speedMax: 60 * strength,
+      lifeMin: 0.35, lifeMax: 0.7,
+      color: "rgba(118, 226, 255, 0.85)", drag: 0.88,
+    });
+  }
+
+  // External: caused damage
+  harm(game, word = "silence") {
+    if (!this.alive) return;
+    this.alive = false;
+    if (this.bloomActive) { this.bloomActive.stop(); this.bloomActive = null; }
+    audio.sfxHarm();
+    game.onPlayerDeath(word);
+    game.particles.burst(this.x, this.y, 28, {
+      speedMin: 40, speedMax: 180, lifeMin: 0.4, lifeMax: 1.2,
+      color: "rgba(255, 143, 163, 0.9)", drag: 0.85,
+    });
+  }
+
+  applyCurrent(ax, ay) {
+    this.recentCurrent.x += ax;
+    this.recentCurrent.y += ay;
+  }
+}
+
+function aabbHit(a, b) {
+  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+}
+
+
+// ===== render.js =====
+// Renderer — the game is dark; render is mostly about wavefronts, reveals,
+// and atmospheric particles. Surfaces glow briefly when pulse-touched.
+// Pulse wavefronts draw as luminous rings with subtle chromatic aberration.
+
+class Renderer {
+  constructor(ctx) {
+    this.ctx = ctx;
+    this.width = 1; this.height = 1;
+    this.shakeTime = 0; this.shakeAmp = 0;
+    this.vignettePulse = 0;
+  }
+
+  resize(w, h) { this.width = w; this.height = h; }
+
+  addShake(amp = 8, time = 0.25) { this.shakeAmp = amp; this.shakeTime = time; }
+
+  // Main draw.
+  render(game, dt) {
+    const ctx = this.ctx;
+    const level = game.level;
+    const cam = game.camera;
+
+    ctx.clearRect(0, 0, this.width, this.height);
+
+    // Background: vertical gradient from palette, slight parallax.
+    this._renderBackground(level, cam);
+
+    if (this.shakeTime > 0) {
+      this.shakeTime -= dt;
+      const f = this.shakeTime > 0 ? 1 : 0;
+      cam.ox = (Math.random() - 0.5) * this.shakeAmp * f;
+      cam.oy = (Math.random() - 0.5) * this.shakeAmp * f;
+    } else { cam.ox = 0; cam.oy = 0; }
+
+    const viewCam = { x: cam.x + cam.ox, y: cam.y + cam.oy };
+
+    // Far ambient specks (very dim)
+    this._renderAmbientSpecks(viewCam, level);
+
+    // Solids — only visible when touched by pulse.
+    this._renderSolids(level, viewCam);
+
+    // Entities
+    for (const e of level.entities) {
+      if (e.render) e.render(ctx, viewCam);
+    }
+
+    // Pulse wavefronts
+    this._renderPulses(level, viewCam);
+
+    // Particles
+    game.particles.render(ctx, viewCam);
+
+    // Player
+    this._renderPlayer(game, viewCam);
+
+    // Pulse history overlay (subtle)
+    this._renderOverlay(game);
+  }
+
+  _renderBackground(level, cam) {
+    const ctx = this.ctx;
+    const p = level.palette;
+    const grad = ctx.createLinearGradient(0, 0, 0, this.height);
+    // Shift with depth: deeper = darker bg0
+    grad.addColorStop(0, p.bg0);
+    grad.addColorStop(1, p.bg1);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, this.width, this.height);
+
+    // subtle volumetric noise from depth — animated vertical fog
+    const t = performance.now() / 4000;
+    ctx.globalCompositeOperation = "lighter";
+    for (let i = 0; i < 3; i++) {
+      const offset = (cam.y * 0.1 + i * 200 + t * 80) % (this.height + 400) - 200;
+      ctx.fillStyle = `rgba(118, 226, 255, 0.015)`;
+      ctx.fillRect(0, offset, this.width, 80);
+    }
+    ctx.globalCompositeOperation = "source-over";
+  }
+
+  _renderAmbientSpecks(cam, level) {
+    // Procedural static specks via hashed positions. Extremely dim.
+    const ctx = this.ctx;
+    ctx.fillStyle = "rgba(155, 180, 214, 0.05)";
+    const spacing = 80;
+    const cols = Math.ceil(this.width / spacing) + 2;
+    const rows = Math.ceil(this.height / spacing) + 2;
+    const ox = Math.floor(cam.x / spacing) * spacing;
+    const oy = Math.floor(cam.y / spacing) * spacing;
+    for (let iy = 0; iy < rows; iy++) {
+      for (let ix = 0; ix < cols; ix++) {
+        const wx = ox + ix * spacing;
+        const wy = oy + iy * spacing;
+        const h = hash2(wx, wy);
+        const jx = (h & 0xff) / 255;
+        const jy = ((h >> 8) & 0xff) / 255;
+        const size = ((h >> 16) & 0xff) / 255;
+        const sx = wx + jx * spacing - cam.x;
+        const sy = wy + jy * spacing - cam.y;
+        if (sx < -4 || sx > this.width + 4 || sy < -4 || sy > this.height + 4) continue;
+        ctx.fillRect(sx, sy, 0.7 + size * 0.8, 0.7 + size * 0.8);
+      }
+    }
+  }
+
+  _renderSolids(level, cam) {
+    const ctx = this.ctx;
+    const p = level.palette;
+    for (let i = 0; i < level.solids.length; i++) {
+      const s = level.solids[i];
+      const a = level.surfaceAlpha(i);
+      if (a <= 0.015) continue;
+      const sx = s.x - cam.x, sy = s.y - cam.y;
+      if (sx + s.w < -20 || sx > this.width + 20 || sy + s.h < -20 || sy > this.height + 20) continue;
+
+      // Filled body — deep color
+      ctx.fillStyle = colorWithAlpha(p.bg0, Math.min(1, a * 1.4));
+      ctx.fillRect(sx, sy, s.w, s.h);
+
+      // Edge outline (brightest when recently pulsed)
+      ctx.strokeStyle = colorWithAlpha(p.surface, a);
+      ctx.lineWidth = 1;
+      ctx.strokeRect(sx + 0.5, sy + 0.5, s.w - 1, s.h - 1);
+
+      // Subtle interior scatter lines for detail
+      if (a > 0.4) {
+        ctx.strokeStyle = colorWithAlpha(p.surface, a * 0.2);
+        ctx.beginPath();
+        for (let x = 6; x < s.w - 2; x += 14) {
+          ctx.moveTo(sx + x, sy + 2);
+          ctx.lineTo(sx + x, sy + Math.min(6, s.h - 2));
+        }
+        ctx.stroke();
+      }
+
+      // Glow halo above surface (lighter blend)
+      if (a > 0.2) {
+        ctx.globalCompositeOperation = "lighter";
+        const grad = ctx.createLinearGradient(0, sy - 12, 0, sy);
+        grad.addColorStop(0, colorWithAlpha(p.wave, 0));
+        grad.addColorStop(1, colorWithAlpha(p.wave, a * 0.12));
+        ctx.fillStyle = grad;
+        ctx.fillRect(sx, sy - 12, s.w, 12);
+        ctx.globalCompositeOperation = "source-over";
+      }
+    }
+  }
+
+  _renderPulses(level, cam) {
+    const ctx = this.ctx;
+    const p = level.palette;
+    ctx.globalCompositeOperation = "lighter";
+    for (const pulse of level.pulses) {
+      const sx = pulse.x - cam.x, sy = pulse.y - cam.y;
+      const r = pulse.radius;
+      const age = pulse.life / pulse.maxLife;
+      const a = (1 - age) * (pulse.silent ? 0.25 : 0.55) * pulse.strength;
+      if (a < 0.02) continue;
+
+      // outer faint ring
+      ctx.strokeStyle = colorWithAlpha(p.wave, a * 0.45);
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(sx, sy, r, 0, TAU); ctx.stroke();
+
+      // leading crisp ring
+      if (r > 3) {
+        ctx.strokeStyle = colorWithAlpha(p.wave, a);
+        ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.arc(sx, sy, r - 3, 0, TAU); ctx.stroke();
+      }
+
+      // chromatic tail
+      if (r > 10) {
+        ctx.strokeStyle = colorWithAlpha(p.accent, a * 0.3);
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.arc(sx, sy, r - 10, 0, TAU); ctx.stroke();
+      }
+
+      // subtle radial fill
+      if (r < 180) {
+        const grad = ctx.createRadialGradient(sx, sy, 0, sx, sy, r);
+        grad.addColorStop(0, colorWithAlpha(p.wave, a * 0.05));
+        grad.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = grad;
+        ctx.beginPath(); ctx.arc(sx, sy, r, 0, TAU); ctx.fill();
+      }
+    }
+    ctx.globalCompositeOperation = "source-over";
+  }
+
+  _renderPlayer(game, cam) {
+    const ctx = this.ctx;
+    const p = game.level.player;
+    if (!p.alive) return;
+    const sx = p.x - cam.x, sy = p.y - cam.y;
+
+    // Bloom (if active) — sustained aura
+    if (p.bloomActive) {
+      ctx.globalCompositeOperation = "lighter";
+      const grad = ctx.createRadialGradient(sx, sy, 0, sx, sy, 90);
+      grad.addColorStop(0, "rgba(255, 244, 220, 0.35)");
+      grad.addColorStop(1, "rgba(255, 244, 220, 0)");
+      ctx.fillStyle = grad;
+      ctx.beginPath(); ctx.arc(sx, sy, 90, 0, TAU); ctx.fill();
+      ctx.globalCompositeOperation = "source-over";
+    }
+
+    // Stillness shroud — dim
+    if (p.stillness > 0) {
+      const a = clamp(p.stillness / 2.5, 0, 1);
+      ctx.fillStyle = `rgba(50, 60, 80, ${0.5 * a})`;
+      ctx.beginPath(); ctx.arc(sx, sy, 14, 0, TAU); ctx.fill();
+    }
+
+    // Core glow
+    ctx.globalCompositeOperation = "lighter";
+    const pulsePhase = 0.5 + 0.5 * Math.sin(p.phase * 2);
+    const gradCore = ctx.createRadialGradient(sx, sy, 0, sx, sy, 40);
+    const glowColor = p.breath > 0.4 ? "rgba(118, 226, 255," : "rgba(255, 143, 163,";
+    gradCore.addColorStop(0, glowColor + ` ${0.6 + 0.2 * pulsePhase})`);
+    gradCore.addColorStop(0.3, glowColor + ` ${0.2 + 0.1 * pulsePhase})`);
+    gradCore.addColorStop(1, glowColor + " 0)");
+    ctx.fillStyle = gradCore;
+    ctx.beginPath(); ctx.arc(sx, sy, 40, 0, TAU); ctx.fill();
+
+    // Body - a soft luminous dot
+    ctx.fillStyle = "rgba(255, 255, 255, 1)";
+    ctx.beginPath(); ctx.arc(sx, sy, 2.4, 0, TAU); ctx.fill();
+    ctx.fillStyle = glowColor + " 1)";
+    ctx.beginPath(); ctx.arc(sx, sy, 3.6, 0, TAU); ctx.fill();
+    ctx.globalCompositeOperation = "source-over";
+  }
+
+  _renderOverlay(game) {
+    const ctx = this.ctx;
+    // Vignette
+    const grad = ctx.createRadialGradient(
+      this.width / 2, this.height / 2, this.height * 0.25,
+      this.width / 2, this.height / 2, this.height * 0.75
+    );
+    grad.addColorStop(0, "rgba(0,0,0,0)");
+    grad.addColorStop(1, "rgba(0,0,0,0.55)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, this.width, this.height);
+
+    // Danger pulse frame
+    if (game.dangerOverlay > 0.01) {
+      ctx.fillStyle = `rgba(255, 143, 163, ${0.14 * game.dangerOverlay})`;
+      ctx.fillRect(0, 0, this.width, this.height);
+    }
+  }
+}
+
+// --- helpers ---
+function hash2(x, y) {
+  let h = (x | 0) * 374761393 + (y | 0) * 668265263;
+  h = (h ^ (h >>> 13)) >>> 0;
+  h = (h * 1274126177) >>> 0;
+  return h;
+}
+
+function colorWithAlpha(rgbaStr, a) {
+  // Accepts "rgba(r,g,b,x)" or "#rrggbb"
+  if (rgbaStr.startsWith("rgba")) {
+    return rgbaStr.replace(/, ?[\d.]+\)$/, `,${a})`);
+  }
+  if (rgbaStr.startsWith("#")) {
+    const r = parseInt(rgbaStr.slice(1, 3), 16);
+    const g = parseInt(rgbaStr.slice(3, 5), 16);
+    const b = parseInt(rgbaStr.slice(5, 7), 16);
+    return `rgba(${r},${g},${b},${a})`;
+  }
+  return rgbaStr;
+}
+
+
+// ===== game.js =====
+// Game — state machine, camera, level flow, narrative, save.
+
+const SAVE_KEY = "echo.save.v1";
+
+class Game {
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext("2d");
+    this.input = new Input(canvas);
+    this.renderer = new Renderer(this.ctx);
+    this.particles = new Particles(1200);
+    this.player = new Player(0, 0);
+    this.level = null;
+    this.levelIndex = 0;
+    this.camera = { x: 0, y: 0, tx: 0, ty: 0, ox: 0, oy: 0 };
+    this.state = "menu"; // menu, playing, paused, dead, complete, ending
+    this.time = 0;
+    this.levelStartTime = 0;
+    this.levelStats = { pulses: 0, fragments: 0, time: 0 };
+    this.dangerOverlay = 0;
+    this.whisperQueue = [];
+    this.whisperTimer = 0;
+    this.totalFragments = 0;
+    this.savedLevel = this._loadSave();
+    this._resize();
+    window.addEventListener("resize", () => this._resize());
+    window.__echoGame = this; // so entities can reach us if needed
+  }
+
+  _resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    this.canvas.width = window.innerWidth * dpr;
+    this.canvas.height = window.innerHeight * dpr;
+    this.canvas.style.width = window.innerWidth + "px";
+    this.canvas.style.height = window.innerHeight + "px";
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.renderer.resize(window.innerWidth, window.innerHeight);
+  }
+
+  // ---------- Flow ----------
+  async start(levelIndex = 0) {
+    await audio.resume();
+    this.levelIndex = levelIndex;
+    this._loadLevel(levelIndex);
+    this.state = "playing";
+  }
+
+  _loadLevel(i) {
+    const def = LEVELS[i]();
+    this.player = new Player(def.spawn.x, def.spawn.y);
+    // Preserve abilities earned from earlier levels.
+    for (let j = 0; j <= i; j++) {
+      const prev = LEVELS[j]();
+      for (const a of prev.abilities ?? []) this.player.unlock(a);
+    }
+    this.level = new Level(def, this.player, (w) => this.showWhisper(w));
+    audio.setScene(def.scene);
+    this.camera.x = def.spawn.x - window.innerWidth / 2;
+    this.camera.y = def.spawn.y - window.innerHeight / 2;
+    this.camera.tx = this.camera.x;
+    this.camera.ty = this.camera.y;
+    this.levelStartTime = this.time;
+    this.levelStats = { pulses: 0, fragments: 0, time: 0 };
+    this.totalFragments = this.level.entities.filter(e => e.kind === "fragment").length;
+    this.dangerOverlay = 0;
+
+    this._showLevelCard(def);
+    setTimeout(() => this.showWhisper(def.whisper), 3200);
+
+    // Cinematic opening pulse: one large silent sonar revealing the opening chamber.
+    this.level.pulses.push({
+      x: def.spawn.x, y: def.spawn.y,
+      radius: 0, maxRadius: 720, speed: 520,
+      life: 0, maxLife: 1.8, strength: 1.4, silent: true,
+      source: "world",
+    });
+    audio.sfxPulse(0.4);
+  }
+
+  restartLevel() {
+    this._loadLevel(this.levelIndex);
+    this.state = "playing";
+  }
+
+  onLevelComplete() {
+    this.state = "complete";
+    this.levelStats.pulses = this.player.pulses;
+    this.levelStats.fragments = this.player.collected;
+    this.levelStats.time = this.time - this.levelStartTime;
+    this._saveProgress(this.levelIndex + 1);
+    if (this.onUiComplete) this.onUiComplete(this.level.def, this.levelStats);
+    audio.clearScene();
+  }
+
+  nextLevel() {
+    const next = this.levelIndex + 1;
+    if (next >= LEVELS.length) {
+      this.state = "ending";
+      if (this.onUiEnding) this.onUiEnding(ENDING_LINES);
+      return;
+    }
+    this.start(next);
+  }
+
+  onPlayerDeath(word) {
+    this.state = "dead";
+    this.renderer.addShake(16, 0.5);
+    if (this.onUiDeath) this.onUiDeath(word);
+    audio.setDanger(0);
+  }
+
+  respawn() {
+    this.restartLevel();
+  }
+
+  pause() { if (this.state === "playing") this.state = "paused"; audio.suspend(); }
+  resume() { if (this.state === "paused") { this.state = "playing"; audio.resume(); } }
+
+  onFragmentCollected(f) {
+    audio.sfxCollect();
+    this.particles.burst(f.x, f.y, 30, {
+      speedMin: 40, speedMax: 120, lifeMin: 0.5, lifeMax: 1.2,
+      color: "rgba(255, 211, 154, 0.95)", drag: 0.9,
+    });
+    this.showWhisper(f.text);
+  }
+
+  showWhisper(text) {
+    if (this.onUiWhisper) this.onUiWhisper(text);
+    audio.sfxWhisper();
+  }
+
+  _showLevelCard(def) {
+    if (this.onUiLevelCard) this.onUiLevelCard(def, this.levelIndex);
+  }
+
+  _saveProgress(nextLevel) {
+    try {
+      localStorage.setItem(SAVE_KEY, JSON.stringify({
+        level: nextLevel, ts: Date.now(),
+      }));
+    } catch {}
+  }
+  _loadSave() {
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (!raw) return 0;
+      return (JSON.parse(raw).level | 0) || 0;
+    } catch { return 0; }
+  }
+  hasSave() { return this.savedLevel > 0 && this.savedLevel < LEVELS.length; }
+  getSavedLevel() { return clamp(this.savedLevel, 0, LEVELS.length - 1); }
+
+  // ---------- Frame ----------
+  update(dt) {
+    this.time += dt;
+    if (this.state !== "playing") {
+      // keep particles fading even on pause menus over death
+      if (this.state === "dead") this.particles.update(dt);
+      return;
+    }
+    if (this.input.wasPressed("pause")) { this.pause(); if (this.onUiPause) this.onUiPause(true); return; }
+
+    const lvl = this.level;
+    this.player.update(dt, this.input, lvl, this);
+    lvl.update(dt, this);
+    this.particles.update(dt);
+
+    // Adaptive audio: intensity from recent activity, danger from nearby lurkers.
+    const recentPulse = clamp(1 - (this.time - this.player.lastPulseTime) / 2.5, 0, 1);
+    audio.setIntensity(recentPulse * 0.6 + (this.player.bloomActive ? 0.4 : 0));
+    let maxAlert = 0;
+    for (const e of lvl.entities) if (e.kind === "lurker") maxAlert = Math.max(maxAlert, e.alertness);
+    audio.setDanger(maxAlert);
+    this.dangerOverlay = lerp(this.dangerOverlay, maxAlert * 0.8, 0.1);
+    audio.tick();
+
+    // Camera follow
+    const ww = window.innerWidth, wh = window.innerHeight;
+    this.camera.tx = this.player.x - ww / 2;
+    this.camera.ty = this.player.y - wh / 2;
+    // Clamp to bounds
+    const b = lvl.bounds;
+    this.camera.tx = clamp(this.camera.tx, b.x, b.x + b.w - ww);
+    this.camera.ty = clamp(this.camera.ty, b.y, b.y + b.h - wh);
+    this.camera.x = lerp(this.camera.x, this.camera.tx, 1 - Math.pow(0.001, dt));
+    this.camera.y = lerp(this.camera.y, this.camera.ty, 1 - Math.pow(0.001, dt));
+
+    // HUD values
+    if (this.onUiHud) {
+      const depth = Math.round(lvl.depth + (this.player.y - (lvl.def.spawn?.y ?? 0)) * 0.1);
+      this.onUiHud({
+        depth, modeName: lvl.modeName,
+        fragments: this.player.collected,
+        totalFragments: this.totalFragments,
+        breath: this.player.breath,
+        abilities: Array.from(this.player.abilities),
+        stillness: this.player.stillness,
+        bloom: !!this.player.bloomActive,
+      });
+    }
+
+    this.input.endFrame();
+  }
+
+  render(dt) {
+    if (!this.level) return;
+    this.renderer.render(this, dt);
+  }
+
+  clearSave() {
+    try { localStorage.removeItem(SAVE_KEY); } catch {}
+    this.savedLevel = 0;
+  }
+}
+
+
+// ===== main.js =====
+// Entry point — wires DOM/UI to Game.
+
+const canvas = document.getElementById("game");
+const game = new Game(canvas);
+
+// ---- UI refs ----
+const titleEl = document.getElementById("title");
+const helpEl = document.getElementById("help");
+const hudEl = document.getElementById("hud");
+const pauseEl = document.getElementById("pause");
+const deathEl = document.getElementById("death");
+const completeEl = document.getElementById("complete");
+const endingEl = document.getElementById("ending");
+const whisperEl = document.getElementById("whisper");
+const levelCardEl = document.getElementById("level-card");
+
+const depthValue = document.getElementById("depth-value");
+const modeValue = document.getElementById("mode-value");
+const fragmentsValue = document.getElementById("fragments-value");
+const breathFill = document.getElementById("breath-fill");
+const breathBar = breathFill.parentElement;
+const abilitiesEl = document.getElementById("abilities");
+
+const levelNumberEl = document.getElementById("level-number");
+const levelTitleEl = document.getElementById("level-title");
+const levelModeEl = document.getElementById("level-mode");
+const levelWhisperEl = document.getElementById("level-whisper");
+const deathWordEl = document.getElementById("death-word");
+const completeTitle = document.getElementById("complete-title");
+const statPulses = document.getElementById("stat-pulses");
+const statFrag = document.getElementById("stat-fragments");
+const statTime = document.getElementById("stat-time");
+const endingTextEl = document.getElementById("ending-text");
+
+// ---- Wire buttons ----
+document.getElementById("btn-begin").onclick = async () => {
+  titleEl.classList.add("hidden");
+  hudEl.classList.remove("hidden");
+  await game.start(0);
+};
+document.getElementById("btn-continue").onclick = async () => {
+  if (!game.hasSave()) return;
+  titleEl.classList.add("hidden");
+  hudEl.classList.remove("hidden");
+  await game.start(game.getSavedLevel());
+};
+document.getElementById("btn-help").onclick = () => {
+  titleEl.classList.add("hidden");
+  helpEl.classList.remove("hidden");
+};
+document.getElementById("btn-help-back").onclick = () => {
+  helpEl.classList.add("hidden");
+  titleEl.classList.remove("hidden");
+};
+document.getElementById("btn-resume").onclick = () => {
+  pauseEl.classList.add("hidden");
+  game.resume();
+};
+document.getElementById("btn-restart").onclick = () => {
+  pauseEl.classList.add("hidden");
+  game.restartLevel();
+};
+document.getElementById("btn-quit").onclick = () => {
+  pauseEl.classList.add("hidden");
+  hudEl.classList.add("hidden");
+  titleEl.classList.remove("hidden");
+  audio.clearScene();
+  game.state = "menu";
+};
+document.getElementById("btn-respawn").onclick = () => {
+  deathEl.classList.add("hidden");
+  game.respawn();
+};
+document.getElementById("btn-next").onclick = () => {
+  completeEl.classList.add("hidden");
+  game.nextLevel();
+};
+
+// Initial: show/hide continue button based on save.
+if (!game.hasSave()) document.getElementById("btn-continue").style.display = "none";
+
+// ---- UI callbacks from game ----
+game.onUiHud = (hud) => {
+  depthValue.textContent = `${hud.depth} m`;
+  modeValue.textContent = hud.modeName;
+  fragmentsValue.textContent = `${hud.fragments} / ${hud.totalFragments}`;
+  breathFill.style.width = `${(hud.breath * 100).toFixed(0)}%`;
+  if (hud.breath < 0.3) breathBar.classList.add("warn");
+  else breathBar.classList.remove("warn");
+
+  // Abilities.
+  const defs = [
+    { id: "pulse", key: "J", label: "pulse" },
+    { id: "bloom", key: "K", label: "bloom" },
+    { id: "stillness", key: "L", label: "stillness" },
+  ];
+  abilitiesEl.innerHTML = "";
+  for (const d of defs) {
+    if (!hud.abilities.includes(d.id)) continue;
+    const div = document.createElement("div");
+    div.className = "ability";
+    if (d.id === "bloom" && hud.bloom) div.classList.add("active");
+    if (d.id === "stillness" && hud.stillness > 0) div.classList.add("active");
+    div.innerHTML = `<kbd>${d.key}</kbd> <span>${d.label}</span>`;
+    abilitiesEl.appendChild(div);
+  }
+};
+
+game.onUiLevelCard = (def, idx) => {
+  levelNumberEl.textContent = `descent · ${idx + 1} of 5`;
+  levelTitleEl.textContent = def.title;
+  levelModeEl.textContent = def.modeName;
+  levelWhisperEl.textContent = def.whisper;
+  levelCardEl.classList.remove("hidden");
+  requestAnimationFrame(() => levelCardEl.classList.add("show"));
+  setTimeout(() => {
+    levelCardEl.classList.remove("show");
+    setTimeout(() => levelCardEl.classList.add("hidden"), 1500);
+  }, 3000);
+};
+
+let whisperTimeoutId;
+game.onUiWhisper = (text) => {
+  if (!text) return;
+  whisperEl.textContent = text;
+  whisperEl.classList.remove("hidden");
+  requestAnimationFrame(() => whisperEl.classList.add("show"));
+  clearTimeout(whisperTimeoutId);
+  whisperTimeoutId = setTimeout(() => {
+    whisperEl.classList.remove("show");
+    setTimeout(() => whisperEl.classList.add("hidden"), 1400);
+  }, 4600);
+};
+
+game.onUiPause = (on) => {
+  if (on) pauseEl.classList.remove("hidden");
+  else pauseEl.classList.add("hidden");
+};
+
+game.onUiDeath = (word) => {
+  deathWordEl.textContent = word;
+  deathEl.classList.remove("hidden");
+};
+
+game.onUiComplete = (def, stats) => {
+  completeTitle.textContent = def.title + " · resolved";
+  statPulses.textContent = stats.pulses;
+  statFrag.textContent = stats.fragments;
+  statTime.textContent = `${stats.time.toFixed(1)}s`;
+  completeEl.classList.remove("hidden");
+};
+
+game.onUiEnding = (lines) => {
+  hudEl.classList.add("hidden");
+  endingTextEl.innerHTML = "";
+  endingEl.classList.remove("hidden");
+  for (let i = 0; i < lines.length; i++) {
+    const div = document.createElement("div");
+    div.className = "ending-line";
+    div.textContent = lines[i];
+    div.style.animationDelay = `${i * 2.4}s`;
+    endingTextEl.appendChild(div);
+  }
+  // final button after the lines settle
+  setTimeout(() => {
+    const btn = document.createElement("button");
+    btn.className = "btn btn-primary";
+    btn.style.marginTop = "60px";
+    btn.textContent = "Return to surface";
+    btn.onclick = () => location.reload();
+    endingTextEl.appendChild(btn);
+  }, lines.length * 2400 + 1800);
+};
+
+// ---- Main loop ----
+let lastT = performance.now();
+function frame(now) {
+  const dt = Math.min((now - lastT) / 1000, 0.05);
+  lastT = now;
+  try {
+    game.update(dt);
+    game.render(dt);
+  } catch (e) {
+    console.error(e);
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+// Resume audio on any first interaction
+const resumeOnce = async () => {
+  await audio.resume();
+  window.removeEventListener("pointerdown", resumeOnce);
+  window.removeEventListener("keydown", resumeOnce);
+};
+window.addEventListener("pointerdown", resumeOnce);
+window.addEventListener("keydown", resumeOnce);
+
+})();
+</script>
+</body>
+</html>

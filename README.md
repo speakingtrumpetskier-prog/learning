@@ -88,12 +88,27 @@ js/input.js       — keyboard + mouse, edge-detection
 js/utils.js       — math, modes, easing, hashing
 ```
 
-## How to run
+## How to play (no setup required)
+
+**Just double-click `play.html`.** It is a single self-contained HTML file
+— everything (music engine, renderer, levels) is inlined. Works in any
+modern browser (Chrome, Firefox, Safari, Edge) straight off your disk.
+Headphones recommended.
+
+### For developers
+
+The source lives as ES modules under `js/`. To iterate in that form you
+need a static server (ES modules won't load over `file://`):
 
 ```sh
-# any static server; the game is ES-modules, so file:// will not work
 python3 -m http.server 8000
 # then open http://localhost:8000/
+```
+
+After editing source, regenerate the standalone file with:
+
+```sh
+node scripts/bundle.mjs   # writes play.html
 ```
 
 ## Design notes

@@ -166,14 +166,18 @@ export class Renderer {
       ctx.beginPath(); ctx.arc(sx, sy, r, 0, TAU); ctx.stroke();
 
       // leading crisp ring
-      ctx.strokeStyle = colorWithAlpha(p.wave, a);
-      ctx.lineWidth = 1.2;
-      ctx.beginPath(); ctx.arc(sx, sy, r - 3, 0, TAU); ctx.stroke();
+      if (r > 3) {
+        ctx.strokeStyle = colorWithAlpha(p.wave, a);
+        ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.arc(sx, sy, r - 3, 0, TAU); ctx.stroke();
+      }
 
       // chromatic tail
-      ctx.strokeStyle = colorWithAlpha(p.accent, a * 0.3);
-      ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.arc(sx, sy, r - 10, 0, TAU); ctx.stroke();
+      if (r > 10) {
+        ctx.strokeStyle = colorWithAlpha(p.accent, a * 0.3);
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.arc(sx, sy, r - 10, 0, TAU); ctx.stroke();
+      }
 
       // subtle radial fill
       if (r < 180) {
