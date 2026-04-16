@@ -1,35 +1,114 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Super Mario Galaxy</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECHO — Chorus of the Abyss</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='3' fill='%2376e2ff'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%2376e2ff' stroke-opacity='0.6'/%3E%3Ccircle cx='16' cy='16' r='14' fill='none' stroke='%2376e2ff' stroke-opacity='0.3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="game-container">
-        <h1>SUPER MARIO GALAXY</h1>
-        <div class="info-panel">
-            <div class="score">Score: <span id="score">0</span></div>
-            <div class="coins">Star Bits: <span id="coins">0</span></div>
-            <div class="lives">Lives: <span id="lives">3</span></div>
-        </div>
-        <canvas id="gameCanvas"></canvas>
-        <div class="controls">
-            <p><strong>Controls:</strong> Arrow Keys / WASD to Move | Space / W / Up to Jump | Z / X / Shift to Spin</p>
-            <button id="restartBtn">Restart Galaxy</button>
-        </div>
-        <div id="gameOver" class="game-over hidden">
-            <h2>Game Over</h2>
-            <p>Final Score: <span id="finalScore">0</span></p>
-            <button id="restartFromGameOver">Try Again</button>
-        </div>
-        <div id="levelComplete" class="level-complete hidden">
-            <h2>Star Get!</h2>
-            <p>Final Score: <span id="completeScore">0</span></p>
-            <button id="restartFromComplete">Play Again</button>
-        </div>
+<div id="app">
+  <canvas id="game"></canvas>
+
+  <div id="hud" class="hidden">
+    <div class="hud-top">
+      <div class="hud-section" id="hud-depth">
+        <span class="hud-label">depth</span>
+        <span class="hud-value" id="depth-value">0 m</span>
+      </div>
+      <div class="hud-section" id="hud-mode">
+        <span class="hud-label">mode</span>
+        <span class="hud-value" id="mode-value">—</span>
+      </div>
+      <div class="hud-section" id="hud-fragments">
+        <span class="hud-label">fragments</span>
+        <span class="hud-value" id="fragments-value">0 / 0</span>
+      </div>
     </div>
-    <script src="game.js"></script>
+    <div class="hud-bottom">
+      <div class="breath-bar">
+        <div class="breath-fill" id="breath-fill"></div>
+        <span class="breath-label">breath</span>
+      </div>
+      <div class="abilities" id="abilities"></div>
+    </div>
+  </div>
+
+  <div id="whisper" class="hidden"></div>
+  <div id="level-card" class="hidden">
+    <div class="level-card-inner">
+      <div class="level-number" id="level-number"></div>
+      <div class="level-title" id="level-title"></div>
+      <div class="level-mode" id="level-mode"></div>
+      <div class="level-whisper" id="level-whisper"></div>
+    </div>
+  </div>
+
+  <div id="title" class="screen">
+    <div class="title-stack">
+      <h1 class="title-logo">ECHO</h1>
+      <div class="title-sub">Chorus of the Abyss</div>
+      <div class="title-pulse"></div>
+      <div class="title-actions">
+        <button class="btn btn-primary" id="btn-begin">Descend</button>
+        <button class="btn" id="btn-continue">Continue</button>
+        <button class="btn btn-ghost" id="btn-help">How to listen</button>
+      </div>
+      <div class="title-credit">a sonar descent · headphones recommended</div>
+    </div>
+  </div>
+
+  <div id="help" class="screen hidden">
+    <div class="help-inner">
+      <h2>How to listen</h2>
+      <p>You are a small light in a dead sea. You cannot see the world. You can only <em>hear</em> it.</p>
+      <ul class="help-controls">
+        <li><kbd>A</kbd> / <kbd>D</kbd> or <kbd>&larr;</kbd> <kbd>&rarr;</kbd> — drift</li>
+        <li><kbd>W</kbd> / <kbd>Space</kbd> — rise / leap</li>
+        <li><kbd>S</kbd> — descend / hold stillness</li>
+        <li><kbd>J</kbd> or <kbd>Left Click</kbd> — <b>pulse</b> (reveals a wavefront)</li>
+        <li><kbd>K</kbd> — <b>bloom</b> (hold to sing a sustained tone)</li>
+        <li><kbd>L</kbd> — <b>stillness</b> (briefly unheard)</li>
+        <li><kbd>Esc</kbd> — pause</li>
+      </ul>
+      <p class="help-tip">Every pulse attracts. Every silence forgets. Listen for the key of each place and move in harmony with it.</p>
+      <button class="btn btn-primary" id="btn-help-back">Return</button>
+    </div>
+  </div>
+
+  <div id="pause" class="screen hidden">
+    <div class="pause-inner">
+      <h2>held breath</h2>
+      <button class="btn btn-primary" id="btn-resume">Resume</button>
+      <button class="btn" id="btn-restart">Restart level</button>
+      <button class="btn btn-ghost" id="btn-quit">Return to surface</button>
+    </div>
+  </div>
+
+  <div id="death" class="screen hidden">
+    <div class="death-inner">
+      <div class="death-word" id="death-word">silence</div>
+      <button class="btn btn-primary" id="btn-respawn">Breathe again</button>
+    </div>
+  </div>
+
+  <div id="complete" class="screen hidden">
+    <div class="complete-inner">
+      <div class="complete-pre">a chord held</div>
+      <h2 id="complete-title"></h2>
+      <div class="complete-stat"><span>pulses</span><span id="stat-pulses">0</span></div>
+      <div class="complete-stat"><span>fragments</span><span id="stat-fragments">0</span></div>
+      <div class="complete-stat"><span>time</span><span id="stat-time">0s</span></div>
+      <button class="btn btn-primary" id="btn-next">Descend further</button>
+    </div>
+  </div>
+
+  <div id="ending" class="screen hidden">
+    <div class="ending-inner" id="ending-text"></div>
+  </div>
+</div>
+
+<script type="module" src="js/main.js"></script>
 </body>
 </html>

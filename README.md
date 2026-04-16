@@ -1,97 +1,107 @@
-# Super Mario Galaxy - Planetary Adventure
+# ECHO — Chorus of the Abyss
 
-An ambitious Super Mario Galaxy-inspired platformer with planetary gravity mechanics, scrolling camera, and polished game feel! Built with HTML5 Canvas and JavaScript.
+A sonar-driven atmospheric descent. You are a small light in a dead sea.
+You **cannot see** the world. You can only **hear** it — and the music
+of each place bends to your touch.
 
-## 🌟 Features
+Built with pure HTML5 Canvas + Web Audio. No assets. No engine. One file
+per system. Headphones recommended.
 
-### Galaxy Mechanics
-- **Planetary Gravity System**: Each planet has its own gravity well that pulls Mario toward it
-- **Walk Around Planets**: Mario rotates and can walk all the way around circular planets
-- **Launch Stars**: Use glowing yellow stars to launch between distant planets
-- **Scrolling Camera**: Smooth camera that follows Mario through the galaxy
-- **Space Aesthetics**: Beautiful starfield with twinkling stars and colorful nebula clouds
+## The core idea (what is unique)
 
-### Polished Game Feel
-- **Improved Physics**: Acceleration-based movement that feels responsive and smooth
-- **Coyote Time**: Grace period to jump after leaving a platform
-- **Jump Buffering**: Press jump slightly before landing and it will register
-- **Variable Jump Height**: Hold jump longer for higher jumps, release early for shorter hops
-- **Squash & Stretch**: Mario squashes on landing and stretches when jumping
-- **Particle Effects**: Visual feedback for jumping, landing, and collecting items
+Almost every platformer gives you a world and asks you to traverse it.
+ECHO removes the world. The screen is nearly black. The only way to
+perceive anything — platforms, creatures, collectibles, the goal — is to
+**emit a sonar pulse** and watch a luminous wavefront wash briefly across
+the level, painting surfaces as it passes. Two seconds later, the world
+has dimmed back to darkness. Memory is a fading thing here.
 
-### Game Elements
-- **5 Unique Planets**: Each with different sizes, colors, and gravity strengths
-- **Star Bits**: Collectible glowing orbs scattered around planets (50 points each)
-- **Goombas**: Enemies that patrol around planets (defeat for 200 points)
-- **Launch Stars**: Yellow stars that transport you between planets (100 points)
-- **Grand Star**: The golden goal star that completes the level
-- **Lives System**: Start with 3 lives
+Then: *every pulse is a sound*. Creatures in the dark hear them. In later
+levels, pulsing carelessly calls lurkers that hunt you. You have to
+decide, constantly, between knowing and being known.
 
-## 🎮 How to Play
+And the whole thing is a musical instrument. Each level has its own
+**key and mode** (Ionian, Dorian, Lydian, Phrygian, and a custom "Chorus"
+mode). Every sound you emit — pulse, bloom, jump, collect — is tuned to
+that mode and stacked over a procedural soundtrack that adapts to what
+you're doing. Your survival and the soundtrack are the same thing.
 
-1. Open `index.html` in your web browser
-2. Use the controls:
-   - **Left/Right Arrows**: Move Mario (with smooth acceleration)
-   - **Up Arrow or Space**: Jump (hold for higher jumps)
-3. Navigate the galaxy:
-   - Land on planets and walk around them
-   - Collect glowing Star Bits for points
-   - Touch Launch Stars to fly between planets
-   - Jump on Goombas from above to defeat them
-   - Reach the Grand Star to complete the level!
+## Mechanics that change per level
 
-## 🌌 Galaxy Mechanics Explained
+1. **Shallows (Ionian · C)** — Tutorial. Calm. Learn to pulse; learn that
+   only your pulses show you the shape of the world.
+2. **Kelp Forest (Dorian · D)** — You unlock **bloom**: hold to sing a
+   sustained tone. Currents push you. Resonators open gates when bloomed.
+3. **Reef (Lydian · E)** — Stealth. Lurkers hear pulses and hunt them.
+   You unlock **stillness** (briefly unheard). Every pulse is a gamble.
+4. **Trench (Phrygian · F♯)** — A vertical descent through opposing
+   currents and hazards, with the most listeners yet. The music turns
+   tense.
+5. **Abyss (Chorus · G)** — A silent entity drifts in the centre. You
+   must **harmonize** five of its voices by holding bloom near each one.
+   When the chord completes, the dark answers.
 
-### Planetary Gravity
-- Each planet has a circular gravity field
-- When Mario enters a planet's gravity well, he's pulled toward the planet's center
-- Mario automatically rotates to align with the planet's surface
-- You can walk all the way around planets - there is no "up" or "down"!
+## Controls
 
-### Launch Stars
-- Glowing yellow pulsing stars scattered between planets
-- Touch one to be launched toward the next planet
-- Use these to traverse large gaps in space
-- Perfect your trajectory to collect Star Bits mid-flight!
+| Action             | Keys                          |
+|--------------------|-------------------------------|
+| Move               | `A` / `D`   or  `←` / `→`     |
+| Rise / jump        | `W` / `Space`                 |
+| Descend / fast-fall| `S`                           |
+| **Pulse**          | `J`  or  left click           |
+| **Bloom** (hold)   | `K`                           |
+| **Stillness**      | `L`                           |
+| Pause              | `Esc`                         |
 
-### Advanced Techniques
-- **Short Hop**: Tap jump briefly for precise movement
-- **Long Jump**: Hold jump to soar between planets
-- **Coyote Jump**: You can still jump for a moment after leaving a planet
-- **Jump Buffering**: Press jump just before landing for instant response
+## Systems, briefly
 
-## 🎨 Visual Features
+- **Procedural audio.** Web Audio oscillators only. Each level sets a
+  root note, mode, tempo, and layered voices (held pad, bassline,
+  modal arp, adaptive percussion). An intensity signal (recent pulses,
+  held bloom) brightens the mix; a danger signal (lurker alertness)
+  rolls in bass and percussion. Nothing is sampled.
+- **Sonar visibility.** Every solid tracks a "last seen" decay; wavefronts
+  paint their ring of visibility onto nearby surfaces; the renderer is
+  just a ramp on each solid's alpha plus a glow halo on fresh ones.
+- **Breath.** Silence drains it. Sound restores it. You do not die from
+  enemies alone — you can die from forgetting to speak.
+- **Narrative fragments.** Collectible memories that whisper a line when
+  picked up; they form a diffuse story of a dead sea and a voice.
+- **Save.** localStorage tracks your deepest level.
 
-- **Dynamic Background**: Parallax starfield with twinkling stars
-- **Colorful Nebulae**: Atmospheric gas clouds in the background
-- **Glowing Planets**: Each planet has a unique color with glow effects
-- **Particle Systems**: Jump dust, landing effects, and collection sparkles
-- **Smooth Animations**: Rotation, squash/stretch, and camera smoothing
+## File layout
 
-## 📊 Scoring
+```
+index.html        — DOM/HUD/overlays
+style.css         — atmospheric UI
+js/main.js        — DOM ↔ game glue
+js/game.js        — state machine, camera, flow, save
+js/level.js       — level model, pulse/reveal system
+js/levels.js      — the five levels
+js/player.js      — movement, abilities, breath
+js/entities.js    — fragment, resonator, gate, current, lurker,
+                    drifter, spike, goal, chorus boss
+js/render.js      — dark-first renderer
+js/particles.js   — small particle pool
+js/audio.js       — procedural modal audio engine
+js/input.js       — keyboard + mouse, edge-detection
+js/utils.js       — math, modes, easing, hashing
+```
 
-- Star Bits: 50 points each
-- Launch Stars: 100 points (when used)
-- Defeating Goombas: 200 points each
-- Grand Star: Level complete!
+## How to run
 
-## 💡 Tips
+```sh
+# any static server; the game is ES-modules, so file:// will not work
+python3 -m http.server 8000
+# then open http://localhost:8000/
+```
 
-- **Master the gravity**: Each planet has different gravity strength - feel the difference!
-- **Plan your route**: Look ahead to see which Launch Stars lead where
-- **Defeat enemies safely**: Always approach Goombas from above
-- **Collect everything**: Star Bits are positioned to guide you through the level
-- **Use momentum**: Your velocity carries between gravity fields - use it strategically!
+## Design notes
 
-## 🚀 Technical Highlights
-
-- Custom planetary gravity physics engine
-- Smooth camera system with configurable lerp
-- Particle system with lifetime management
-- Squash and stretch character deformation
-- Advanced jump mechanics (coyote time, buffering, variable height)
-- Parallax scrolling background layers
-- Dynamic rotation and gravity direction
-- Real-time collision detection with circular objects
-
-Enjoy your journey through the stars! 🌟
+The pitch was *Mario Galaxy but it trusts restraint*: every level has
+one structural surprise and one musical shift, and the game's loop is
+tuned so that each surprise feels *earned* — the level before it sets up
+the habit it will then subvert. Calm, loud, stealth, tense, still. The
+core mechanic survives every transition because every system — sight,
+sound, safety — is routed through the same simple action: *I emit a
+tone into the dark.*
