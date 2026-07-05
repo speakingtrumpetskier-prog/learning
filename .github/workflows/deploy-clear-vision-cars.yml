@@ -3,7 +3,7 @@ name: Deploy Clear Vision Cars
 on:
   push:
     branches:
-      - clear-vision-cars
+      - claude/super-mario-level-9pB41
   workflow_dispatch:
 
 permissions:
