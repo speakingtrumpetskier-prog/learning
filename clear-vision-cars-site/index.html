@@ -1,0 +1,829 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clear Vision Cars — Headlight Restoration · Minnetonka, MN</title>
+<meta name="description" content="Headlight restoration in Minnetonka, Minnesota. Wet-sanded 800 to 3000 grit, wiped down, sealed with a fresh clear coat. Book in a minute.">
+<link rel="icon" href="assets/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FFFFFF; --bg2:#EFF5FB; --ink:#0C2340; --ink2:#42566E; --line:rgba(12,35,64,.12);
+  --blue:#2F6BAE; --blue2:#1E4E86; --navy:#0C2340; --ice:#BFDCF7;
+  --sans:"Archivo", "Segoe UI", system-ui, sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.5;
+  -webkit-font-smoothing:antialiased}
+::selection{background:var(--blue);color:#fff}
+a{color:inherit}
+img{display:block}
+.btn{display:inline-flex;align-items:center;gap:8px;background:var(--blue);color:#fff;text-decoration:none;
+  font-weight:600;font-size:15.5px;padding:13px 26px;border-radius:10px;border:1.5px solid var(--blue);
+  transition:background .2s,border-color .2s,transform .15s}
+.btn:hover{background:var(--blue2);border-color:var(--blue2);transform:translateY(-1px)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.ghost:hover{background:var(--bg2);transform:translateY(-1px)}
+.kick{font-size:12px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--blue)}
+h2{font-weight:750;font-stretch:112%;font-size:clamp(26px,3.4vw,40px);letter-spacing:-.015em;line-height:1.08}
+
+/* header */
+header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line)}
+.hwrap{max-width:1200px;margin:0 auto;padding:10px clamp(16px,3vw,36px);display:flex;align-items:center;gap:18px}
+.hlogo img{height:40px;width:auto}
+header nav{margin-left:auto;display:flex;align-items:center;gap:clamp(14px,2.4vw,30px)}
+header nav a{font-size:14px;font-weight:600;text-decoration:none;color:var(--ink2)}
+header nav a:hover{color:var(--blue)}
+header nav .btn{padding:9px 18px;font-size:14px}
+@media (max-width:680px){ header nav a:not(.btn){display:none} }
+
+/* hero */
+.hero{background:linear-gradient(180deg,#FFFFFF 0%,#EFF5FB 100%);border-bottom:1px solid var(--line)}
+.hgrid{max-width:1200px;margin:0 auto;padding:clamp(36px,6vw,84px) clamp(16px,3vw,36px);
+  display:grid;grid-template-columns:5fr 6fr;gap:clamp(28px,4vw,64px);align-items:center}
+@media (max-width:900px){ .hgrid{grid-template-columns:1fr} }
+.hero .biglogo{width:clamp(230px,26vw,330px);height:auto;margin-bottom:clamp(18px,3vw,30px)}
+h1{font-weight:800;font-stretch:118%;font-size:clamp(34px,4.6vw,58px);letter-spacing:-.02em;line-height:1.02;
+  text-transform:uppercase}
+h1 span{color:var(--blue)}
+.hero p.sub{margin-top:14px;font-size:clamp(16px,1.5vw,19px);color:var(--ink2);max-width:38ch}
+.hcta{margin-top:26px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+
+/* before/after slider */
+.ba{position:relative;border-radius:16px;overflow:hidden;box-shadow:0 18px 50px -18px rgba(12,35,64,.35);
+  user-select:none;-webkit-user-select:none;touch-action:pan-y;background:#dfe6ee}
+.ba img.after{width:100%;height:auto;aspect-ratio:1024/679;object-fit:cover;pointer-events:none}
+.ba .bwrap{position:absolute;top:0;left:0;height:100%;width:55%;overflow:hidden;pointer-events:none}
+.ba .bwrap img{height:100%;width:auto;max-width:none;display:block}
+.ba .chip{position:absolute;top:14px;z-index:3;background:rgba(12,35,64,.78);color:#fff;font-size:12px;
+  font-weight:700;letter-spacing:.14em;padding:7px 14px;border-radius:999px;pointer-events:none}
+.ba .chip.b{left:14px}
+.ba .chip.a{right:14px}
+.ba .div{position:absolute;top:0;bottom:0;width:2.5px;background:#fff;z-index:2;
+  box-shadow:0 0 12px rgba(0,0,0,.4);pointer-events:none}
+.ba .knob{position:absolute;top:50%;z-index:3;width:46px;height:46px;border-radius:50%;background:var(--navy);
+  transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;color:#fff;
+  box-shadow:0 4px 14px rgba(0,0,0,.35);cursor:ew-resize;pointer-events:none}
+.ba::after{content:"";position:absolute;inset:0;cursor:ew-resize}
+.bacap{margin-top:10px;font-size:12.5px;color:var(--ink2);letter-spacing:.06em;text-transform:uppercase;
+  display:flex;justify-content:space-between}
+
+/* reviews marquee */
+.marq{background:var(--navy);color:#fff;overflow:hidden;padding:22px 0}
+.mtrack{display:inline-flex;gap:0;white-space:nowrap;animation:marq 36s linear infinite;width:max-content}
+.marq:hover .mtrack{animation-play-state:paused}
+@keyframes marq{to{transform:translateX(-50%)}}
+.rev{display:inline-flex;align-items:baseline;gap:14px;padding:0 44px;border-right:1px solid rgba(255,255,255,.14)}
+.rev .stars{color:#F0B429;font-size:14px;letter-spacing:2px}
+.rev .q{font-size:15.5px;font-weight:500}
+.rev .who{font-size:13px;color:var(--ice);font-weight:600}
+@media (prefers-reduced-motion:reduce){ .mtrack{animation:none} .marq{overflow-x:auto} }
+
+/* stat band */
+.stat{background:var(--bg)}
+.statwrap{max-width:1200px;margin:0 auto;padding:clamp(40px,6vw,72px) clamp(16px,3vw,36px);
+  display:flex;flex-wrap:wrap;align-items:center;gap:clamp(20px,4vw,54px)}
+.statwrap .n{font-weight:850;font-stretch:120%;font-size:clamp(72px,11vw,140px);line-height:.9;
+  letter-spacing:-.03em;color:var(--blue);flex-shrink:0}
+.statwrap p{font-size:clamp(16px,1.6vw,20px);color:var(--ink2);max-width:34ch}
+.statwrap p b{color:var(--ink)}
+.statwrap .src{display:block;margin-top:8px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink2);opacity:.7}
+
+/* process */
+#process{background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.proc{position:relative;height:440vh}
+.psticky{position:sticky;top:0;height:100vh;height:100svh;display:flex;align-items:center;overflow:hidden}
+.pinner{width:100%;max-width:1200px;margin:0 auto;padding:0 clamp(16px,3vw,36px);
+  display:grid;grid-template-columns:13fr 7fr;gap:clamp(20px,3.5vw,56px);align-items:center}
+.stagewrap{position:relative}
+#lens,#tools{width:100%;aspect-ratio:16/10.4;display:block;max-height:66vh;border-radius:16px}
+#tools{position:absolute;inset:0;pointer-events:none}
+.stagechip{position:absolute;left:14px;bottom:14px;background:rgba(12,35,64,.8);color:#fff;
+  font-size:12.5px;font-weight:700;letter-spacing:.16em;padding:8px 16px;border-radius:999px;pointer-events:none}
+.stagechip b{color:var(--ice);font-weight:700}
+.psteps{display:flex;flex-direction:column;gap:clamp(14px,2.4vh,26px)}
+.pk{margin-bottom:2px}
+.psteps h2{margin-bottom:8px}
+.pstep{border-left:3px solid var(--line);padding:6px 0 6px 18px;opacity:.38;transition:opacity .4s,border-color .4s}
+.pstep.on{opacity:1;border-color:var(--blue)}
+.pstep .sn{font-size:11.5px;font-weight:700;letter-spacing:.2em;color:var(--blue)}
+.pstep h3{font-weight:700;font-stretch:108%;font-size:clamp(17px,1.8vw,22px);margin:3px 0 2px}
+.pstep p{color:var(--ink2);font-size:15px}
+@media (max-width:900px){
+  .pinner{grid-template-columns:1fr;gap:14px;align-content:center}
+  #lens,#tools{max-height:40vh;aspect-ratio:16/10.4}
+  .psteps h2{font-size:22px}
+  .pstep p{font-size:13.5px}
+}
+
+/* benefits */
+.why{background:var(--bg)}
+.whywrap{max-width:1200px;margin:0 auto;padding:clamp(44px,6vw,80px) clamp(16px,3vw,36px)}
+.wgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(14px,2vw,28px);margin-top:26px}
+@media (max-width:820px){ .wgrid{grid-template-columns:repeat(2,1fr)} }
+.w{border:1px solid var(--line);border-radius:14px;padding:22px 20px;transition:border-color .2s,transform .2s,box-shadow .2s}
+.w:hover{border-color:var(--blue);transform:translateY(-3px);box-shadow:0 12px 30px -16px rgba(12,35,64,.3)}
+.w svg{width:30px;height:30px;stroke:var(--blue);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;margin-bottom:12px}
+.w h3{font-weight:700;font-size:16.5px;letter-spacing:-.01em}
+
+/* booking */
+#book{background:linear-gradient(180deg,#0C2340,#123156)}
+.bwrap2{max-width:1200px;margin:0 auto;padding:clamp(50px,7vw,96px) clamp(16px,3vw,36px);
+  display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,4vw,60px);align-items:center;color:#fff}
+@media (max-width:820px){ .bwrap2{grid-template-columns:1fr} }
+#book h2{color:#fff;text-transform:uppercase;font-stretch:116%}
+#book p{color:var(--ice);margin-top:12px;font-size:16.5px;max-width:44ch}
+#book .btn{background:#fff;color:var(--navy);border-color:#fff;font-size:16.5px;padding:15px 32px}
+#book .btn:hover{background:var(--ice);border-color:var(--ice)}
+#book .call{margin-top:16px;font-size:15px;color:var(--ice)}
+#book .call a{color:#fff;font-weight:700;text-decoration:none;border-bottom:1.5px solid rgba(255,255,255,.4)}
+#book .call a:hover{border-color:#fff}
+#book .fine{margin-top:22px;font-size:13px;color:rgba(191,220,247,.6)}
+
+/* footer */
+footer{background:#081A31;color:rgba(255,255,255,.65)}
+.fwrap{max-width:1200px;margin:0 auto;padding:26px clamp(16px,3vw,36px);display:flex;flex-wrap:wrap;
+  justify-content:space-between;align-items:center;gap:10px;font-size:13px}
+.fmark{font-weight:750;font-stretch:112%;color:#fff;font-size:15px;letter-spacing:.01em}
+footer a{color:inherit;text-decoration:none}
+footer a:hover{color:#fff}
+.fcontact a{white-space:nowrap}
+.fcredit{width:100%;font-size:11px;opacity:.45;margin-top:4px}
+#pyro{cursor:default}
+
+/* reveal */
+.rv{opacity:0;transform:translateY(14px);transition:opacity .7s ease,transform .7s ease}
+.rv.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} .rv{transition:none;opacity:1;transform:none} }
+
+#fw{position:fixed;inset:0;z-index:200;pointer-events:none;display:none}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hwrap">
+    <a class="hlogo" href="#top" aria-label="Clear Vision Cars"><img src="assets/logo.png" alt="Clear Vision Cars"></a>
+    <nav>
+      <a href="#process">Process</a>
+      <a href="#reviews">Reviews</a>
+      <a href="tel:+16513684472">(651) 368-4472</a>
+      <a class="btn" href="https://docs.google.com/forms/d/e/1FAIpQLSciSpZyI2kTbDq9lTqUa61PR_cCRKOzuXVrTm6bC0Iv6xuK6Q/viewform" target="_blank" rel="noopener">Book</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero" id="top">
+  <div class="hgrid">
+    <div>
+      <img class="biglogo" src="assets/logo.png" alt="Clear Vision Cars — headlight restoration">
+      <h1>See the road <span>again.</span></h1>
+      <p class="sub">Cloudy, yellowed headlights restored on your schedule. Minnetonka, Minnesota.</p>
+      <div class="hcta">
+        <a class="btn" href="https://docs.google.com/forms/d/e/1FAIpQLSciSpZyI2kTbDq9lTqUa61PR_cCRKOzuXVrTm6bC0Iv6xuK6Q/viewform" target="_blank" rel="noopener">Book a restoration</a>
+        <a class="btn ghost" href="tel:+16513684472">(651) 368-4472</a>
+      </div>
+    </div>
+    <div>
+      <div class="ba" id="ba" aria-label="Before and after comparison — drag to compare">
+        <img class="after" id="baAfter" src="assets/headlight-after.jpg" alt="Restored headlight">
+        <div class="bwrap" id="baWrap"><img src="assets/headlight-before.jpg" alt="Oxidized headlight before restoration"></div>
+        <div class="chip b">BEFORE</div>
+        <div class="chip a">AFTER</div>
+        <div class="div" id="baDiv"></div>
+        <div class="knob" id="baKnob">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4 L2 10 L7 16"/><path d="M13 4 L18 10 L13 16"/></svg>
+        </div>
+      </div>
+      <div class="bacap"><span>Drag to compare</span><span>Same lens, restored</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="marq" id="reviews" aria-label="Customer reviews">
+  <div class="mtrack" id="mtrack">
+    <!-- Reviews render from assets/reviews.json (see HOW-TO-EDIT.txt). This is the fallback. -->
+    <span class="rev"><span class="stars">★★★★★</span><span class="q">&ldquo;Sol was fast, considerate, and professional. I didn&rsquo;t know how much difference clean headlights would make until I had them!&rdquo;</span><span class="who">Luke, Minneapolis</span></span>
+    <span class="rev"><span class="stars">★★★★★</span><span class="q">&ldquo;Looks brand new. Should&rsquo;ve done it years ago.&rdquo;</span><span class="who">R.S., St. Louis Park</span></span>
+  </div>
+</div>
+
+<section class="stat">
+  <div class="statwrap">
+    <div class="n rv">20%</div>
+    <p class="rv"><b>That&rsquo;s all the light a badly clouded lens can put out</b> compared to new.
+    UV slowly eats the factory coating. The lens turns yellow, and your beam goes with it.
+    <span class="src">AAA Automotive Research</span></p>
+  </div>
+</section>
+
+<section class="why">
+  <div class="whywrap">
+    <div class="kick rv">Why bother</div>
+    <h2 class="rv" style="margin-top:10px;max-width:18ch">A small job. A big difference.</h2>
+    <div class="wgrid">
+      <div class="w rv">
+        <svg viewBox="0 0 24 24"><path d="M9 6 C5 6 3 8.5 3 12 C3 15.5 5 18 9 18 C12 18 14 15.5 14 12 C14 8.5 12 6 9 6 Z"/><path d="M17 8 L21.5 6.5"/><path d="M17.5 12 L22 12"/><path d="M17 16 L21.5 17.5"/></svg>
+        <h3>See farther at night</h3>
+      </div>
+      <div class="w rv">
+        <svg viewBox="0 0 24 24"><path d="M12 3 L13.6 9.2 L20 11 L13.6 12.8 L12 19 L10.4 12.8 L4 11 L10.4 9.2 Z"/><path d="M19 17 L19.7 19.3 L22 20 L19.7 20.7 L19 23"  transform="translate(0,-2) scale(0.9)"/></svg>
+        <h3>Looks new again</h3>
+      </div>
+      <div class="w rv">
+        <svg viewBox="0 0 24 24"><path d="M12 21 C12 21 4.5 16.5 4.5 10.5 C4.5 7 7 4.5 10 4.5 C11 4.5 11.7 4.8 12 5.2 C12.3 4.8 13 4.5 14 4.5 C17 4.5 19.5 7 19.5 10.5 C19.5 16.5 12 21 12 21 Z" transform="rotate(0)" /></svg>
+        <h3>Holds resale value</h3>
+      </div>
+      <div class="w rv">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5 L12 16.5"/><path d="M14.8 9.5 C14.8 9.5 14 8.4 12 8.4 C10 8.4 9.3 9.4 9.3 10.2 C9.3 12.9 14.7 11.4 14.7 13.9 C14.7 14.9 13.8 15.7 12 15.7 C10 15.7 9.2 14.5 9.2 14.5"/></svg>
+        <h3>A fraction of replacement cost</h3>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="process">
+  <div class="proc" id="procroot">
+    <div class="psticky">
+      <div class="pinner">
+        <div class="stagewrap">
+          <canvas id="lens" aria-label="Animation of a headlight being wet-sanded, wiped down, and clear-coated as you scroll"></canvas>
+          <canvas id="tools" aria-hidden="true"></canvas>
+          <div class="stagechip">STAGE&ensp;<b id="stagelab">OXIDIZED</b></div>
+        </div>
+        <div class="psteps">
+          <div class="kick pk">The process</div>
+          <h2>Three steps.<br>Done right.</h2>
+          <div class="pstep" id="ps0">
+            <div class="sn">STEP 1</div>
+            <h3>Wet sand</h3>
+            <p>800 &rarr; 3000 grit, by hand.</p>
+          </div>
+          <div class="pstep" id="ps1">
+            <div class="sn">STEP 2</div>
+            <h3>Wipe down</h3>
+            <p>Clean, dry, prepped.</p>
+          </div>
+          <div class="pstep" id="ps2">
+            <div class="sn">STEP 3</div>
+            <h3>Clear coat</h3>
+            <p>Sealed the way the factory did it.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="book">
+  <div class="bwrap2">
+    <div class="rv">
+      <div class="kick" style="color:var(--ice)">Booking</div>
+      <h2>Ready when you are.</h2>
+      <p>Send a request and Sol will reach out to set it up. You don&rsquo;t need to be there for the appointment.</p>
+    </div>
+    <div class="rv">
+      <a class="btn" href="https://docs.google.com/forms/d/e/1FAIpQLSciSpZyI2kTbDq9lTqUa61PR_cCRKOzuXVrTm6bC0Iv6xuK6Q/viewform" target="_blank" rel="noopener">Book a restoration&ensp;&rarr;</a>
+      <div class="call">Call <a href="tel:+16513684472">(651) 368-4472</a> or email <a href="mailto:clearvisioncarsmn@gmail.com">clearvisioncarsmn@gmail.com</a></div>
+      <div class="fine">The request form takes about a minute. It starts the conversation; it doesn&rsquo;t lock in an appointment.</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="fwrap">
+    <span class="fmark">clear vision cars</span>
+    <span>Locally owned &amp; operated in Minnetonka, Minnesota<span id="pyro">.</span></span>
+    <span class="fcontact"><a href="tel:+16513684472">(651) 368-4472</a> &nbsp;·&nbsp; <a href="mailto:clearvisioncarsmn@gmail.com">clearvisioncarsmn@gmail.com</a></span>
+    <span class="fcredit">Comparison photo: rawpixel.com (CC0). Oxidation simulated for illustration.</span>
+  </div>
+</footer>
+
+<canvas id="fw"></canvas>
+
+<script>
+(function(){
+'use strict';
+
+var REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function clamp(x,a,b){ return x<a?a:(x>b?b:x); }
+function lerp(a,b,t){ return a+(b-a)*t; }
+
+/* ============ before/after slider ============ */
+/* The BEFORE image is pre-baked from the AFTER photo by tools-bake-oxidation.ps1.
+   Swap assets/headlight-before.jpg + headlight-after.jpg for real job photos any time. */
+function initBA(){
+  var ba = document.getElementById('ba');
+  var wrap = document.getElementById('baWrap');
+  var divl = document.getElementById('baDiv');
+  var knob = document.getElementById('baKnob');
+  var pos = 0.55;
+
+  function set(p){
+    pos = clamp(p, 0.02, 0.98);
+    wrap.style.width = (pos*100)+'%';
+    divl.style.left = (pos*100)+'%';
+    knob.style.left = (pos*100)+'%';
+  }
+  function fromEvent(e){
+    var r = ba.getBoundingClientRect();
+    set((e.clientX - r.left)/r.width);
+  }
+  var drag = false;
+  ba.addEventListener('pointerdown', function(e){ drag=true; ba.setPointerCapture(e.pointerId); fromEvent(e); });
+  ba.addEventListener('pointermove', function(e){ if(drag) fromEvent(e); });
+  window.addEventListener('pointerup', function(){ drag=false; });
+  ba.tabIndex = 0;
+  ba.addEventListener('keydown', function(e){
+    if(e.key==='ArrowLeft'){ set(pos-0.04); e.preventDefault(); }
+    if(e.key==='ArrowRight'){ set(pos+0.04); e.preventDefault(); }
+  });
+  set(pos);
+}
+
+/* ============ GL helpers ============ */
+function compileShader(gl, type, src, name){
+  var s = gl.createShader(type);
+  gl.shaderSource(s, src); gl.compileShader(s);
+  if(!gl.getShaderParameter(s, gl.COMPILE_STATUS)){ console.error('[shader '+name+']', gl.getShaderInfoLog(s)); return null; }
+  return s;
+}
+function makeProgram(gl, fsSrc, name){
+  var vsSrc = '#version 300 es\nlayout(location=0) in vec2 p; out vec2 v_uv;\nvoid main(){ v_uv = p*0.5+0.5; gl_Position = vec4(p,0.0,1.0); }';
+  var vs = compileShader(gl, gl.VERTEX_SHADER, vsSrc, name+'.vs');
+  var fs = compileShader(gl, gl.FRAGMENT_SHADER, fsSrc, name+'.fs');
+  if(!vs||!fs) return null;
+  var pr = gl.createProgram();
+  gl.attachShader(pr,vs); gl.attachShader(pr,fs); gl.linkProgram(pr);
+  if(!gl.getProgramParameter(pr, gl.LINK_STATUS)){ console.error('[link '+name+']', gl.getProgramInfoLog(pr)); return null; }
+  return pr;
+}
+var NOISE = [
+'float hash12(vec2 p){ vec3 p3 = fract(vec3(p.xyx)*0.1031); p3 += dot(p3, p3.yzx+33.33); return fract((p3.x+p3.y)*p3.z); }',
+'float vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);',
+'  float a=hash12(i), b=hash12(i+vec2(1,0)), c=hash12(i+vec2(0,1)), d=hash12(i+vec2(1,1));',
+'  return mix(mix(a,b,f.x), mix(c,d,f.x), f.y); }',
+'float fbm(vec2 p){ float v=0.0, a=0.5; for(int i=0;i<4;i++){ v+=a*vnoise(p); p=p*2.03+vec2(17.3,9.1); a*=0.5; } return v; }'
+].join('\n');
+
+/* serpentine path constants — MUST match shader */
+var PATH = { yTop:0.46, yBot:-0.50, x0:-1.10, x1:1.06, rowsSand:5, rowsWipe:3 };
+function rowPos(pr, N){
+  pr = clamp(pr, 0.0001, 0.9999);
+  var rp = pr*N, r = Math.floor(rp), f = rp - r;
+  var even = (r%2===0);
+  var x = even ? PATH.x0 + (PATH.x1-PATH.x0)*f : PATH.x1 - (PATH.x1-PATH.x0)*f;
+  var rowH = (PATH.yTop-PATH.yBot)/N;
+  var y = PATH.yTop - (r+0.5)*rowH;
+  return {x:x, y:y, row:r, f:f, dir: even?1:-1};
+}
+
+/* ============ headlight process shader ============ */
+var LENS_FS = '#version 300 es\nprecision highp float;\nin vec2 v_uv; out vec4 o;\n'
++'uniform float u_time; uniform vec2 u_res; uniform vec2 u_tilt;\n'
++'uniform float u_c1; uniform float u_c2; uniform float u_c3; uniform float u_c4; uniform float u_on;\n'
++'uniform vec3 u_tool;\n'
++ NOISE + '\n'
++'float smax(float a, float b, float k){ float h = clamp(0.5+0.5*(b-a)/k, 0.0, 1.0); return mix(a,b,h) + k*h*(1.0-h); }\n'
++'float hp(vec2 p, vec2 q, vec2 n){ return dot(p-q, normalize(n)); }\n'
++'float lensSDF(vec2 p){\n'
++'  float d = hp(p, vec2(-1.05,0.42), vec2(0.32,2.07));\n'
++'  d = smax(d, hp(p, vec2(1.02,0.10), vec2(0.44,-0.20)), 0.10);\n'
++'  d = smax(d, hp(p, vec2(0.82,-0.34), vec2(0.08,-1.77)), 0.12);\n'
++'  d = smax(d, hp(p, vec2(-1.05,0.42), vec2(-0.84,-0.10)), 0.12);\n'
++'  return d - 0.055;\n'
++'}\n'
++'float covRows(vec2 p, float pr, float N){\n'
++'  if(pr <= 0.0) return 0.0;\n'
++'  if(pr >= 1.0) return 1.0;\n'
++'  float yTop=0.46; float yBot=-0.50; float x0=-1.10; float x1=1.06;\n'
++'  float rowH = (yTop-yBot)/N;\n'
++'  float ri = floor((yTop - p.y)/rowH);\n'
++'  float rp = pr*N; float rc = floor(rp); float f = fract(rp);\n'
++'  float even = mod(rc,2.0);\n'
++'  float xe = mix(mix(x0,x1,f), mix(x1,x0,f), even);\n'
++'  xe += (vnoise(p*7.0+3.0)-0.5)*0.07;\n'
++'  if(ri < rc - 0.5) return 1.0;\n'
++'  if(ri > rc + 0.5) return 0.0;\n'
++'  if(even < 0.5) return 1.0 - smoothstep(xe-0.08, xe+0.05, p.x);\n'
++'  return smoothstep(xe-0.05, xe+0.08, p.x);\n'
++'}\n'
++'vec3 interiorCol(vec2 p, vec2 tilt, float on){\n'
++'  vec2 ip = p + tilt*0.05;\n'
++'  vec3 col = mix(vec3(0.05,0.07,0.10), vec3(0.13,0.16,0.20), clamp(0.55+0.5*ip.y,0.0,1.0));\n'
++'  vec2 gc = ip*vec2(8.0,6.5);\n'
++'  vec2 gi = floor(gc); vec2 gf = fract(gc)-0.5;\n'
++'  float fh = hash12(gi);\n'
++'  float facet = 0.5+0.5*sin((gf.x*1.4+gf.y)*4.0 + fh*6.2831 + 0.6);\n'
++'  float fspec = pow(facet, 3.0);\n'
++'  col = mix(col, vec3(0.40,0.46,0.54)*(0.35+0.9*fspec) + vec3(0.08), 0.5);\n'
++'  col += vec3(0.5,0.6,0.72)*fspec*fh*0.22;\n'
++'  float rib = 0.5+0.5*sin(ip.x*90.0);\n'
++'  float amberM = smoothstep(-0.58,-0.68,ip.x);\n'
++'  vec3 amber = mix(vec3(0.55,0.22,0.03), vec3(0.98,0.55,0.10), 0.35+0.5*rib);\n'
++'  col = mix(col, amber*(0.72+0.28*sin(ip.y*38.0)), amberM*0.92);\n'
++'  vec2 rc2 = ip - vec2(-0.16,0.03);\n'
++'  float rr = length(rc2*vec2(1.0,1.12));\n'
++'  float ang = atan(rc2.y, rc2.x);\n'
++'  float bowlM = smoothstep(0.315,0.295,rr);\n'
++'  float rings = 0.5+0.5*sin(rr*52.0-1.0);\n'
++'  float spokes = 0.5+0.5*sin(ang*16.0);\n'
++'  float shade = 0.32 + 0.45*rings*(0.55+0.45*spokes) + 0.35*clamp(dot(normalize(rc2+vec2(0.0001)), vec2(-0.5,0.8)),0.0,1.0);\n'
++'  vec3 bowl = vec3(0.60,0.66,0.74)*shade;\n'
++'  bowl += vec3(1.0,0.92,0.75)*exp(-rr*rr*160.0)*(0.9+1.7*on);\n'
++'  col = mix(col, bowl, bowlM);\n'
++'  col = mix(col, vec3(0.09,0.11,0.14), clamp(smoothstep(0.335,0.315,rr)-bowlM,0.0,1.0));\n'
++'  vec2 pc = ip - vec2(0.46,-0.03);\n'
++'  float pr2 = length(pc);\n'
++'  float ringM = clamp(smoothstep(0.27,0.262,pr2) - smoothstep(0.218,0.21,pr2), 0.0, 1.0);\n'
++'  vec3 ring = vec3(0.75,0.80,0.86)*(0.45+0.55*clamp(0.5-pc.y*2.2,0.0,1.0));\n'
++'  ring += vec3(1.0)*pow(clamp(dot(normalize(pc+vec2(0.0001)), vec2(-0.6,0.8)),0.0,1.0), 6.0)*0.7;\n'
++'  col = mix(col, ring, ringM);\n'
++'  col = mix(col, vec3(0.05,0.06,0.08), clamp(smoothstep(0.218,0.19,pr2)-smoothstep(0.178,0.17,pr2),0.0,1.0));\n'
++'  float glassM = smoothstep(0.178,0.17,pr2);\n'
++'  float fres = 0.5+0.5*sin(pr2*150.0 - 2.0);\n'
++'  vec3 glass = mix(vec3(0.07,0.10,0.15), vec3(0.16,0.22,0.30), fres);\n'
++'  glass += vec3(0.30,0.50,0.80)*smoothstep(0.10,0.168,pr2)*0.45;\n'
++'  glass += vec3(0.9,0.95,1.0)*pow(clamp(1.0-pr2*7.0,0.0,1.0),2.0)*0.25;\n'
++'  col = mix(col, glass, glassM);\n'
++'  float dy = ip.y - (-0.36 + ip.x*0.045 + 0.03*sin(ip.x*2.0));\n'
++'  float drlM = exp(-dy*dy*900.0) * smoothstep(0.95,0.85,abs(ip.x*1.15));\n'
++'  col = mix(col, vec3(0.85,0.90,0.95), drlM*0.7);\n'
++'  col += vec3(0.55,0.75,1.0)*drlM*on*1.6;\n'
++'  col += vec3(1.0,0.97,0.9)*on*exp(-pr2*pr2*90.0)*2.6;\n'
++'  col += vec3(0.85,0.92,1.0)*on*exp(-pr2*pr2*14.0)*0.55;\n'
++'  col += vec3(0.9,0.95,1.0)*on*exp(-pow(pc.y*22.0,2.0))*exp(-pow(pc.x*2.6,2.0))*0.8;\n'
++'  return col;\n'
++'}\n'
++'void main(){\n'
++'  float a = u_res.x/u_res.y;\n'
++'  vec2 p = (v_uv-0.5)*vec2(a,1.0)*2.0;\n'
++'  float d = lensSDF(p);\n'
++'  vec3 body = mix(vec3(0.925,0.945,0.97), vec3(0.985,0.99,1.0), clamp(0.5+p.y*0.5,0.0,1.0));\n'
++'  body *= 1.0 - 0.05*fbm(p*2.0+7.0);\n'
++'  body *= 1.0 - 0.28*exp(-max(d,0.0)*7.0);\n'
++'  body *= 1.0 - 0.22*exp(-pow((p.y-0.62+p.x*0.05)*55.0,2.0));\n'
++'  body += vec3(0.75,0.85,1.0)*u_on*exp(-pow((p.y+0.03)*2.6,2.0))*smoothstep(0.5,1.6,p.x)*0.30;\n'
++'  vec3 col = body;\n'
++'  if(d < 0.0){\n'
++'    float c1 = covRows(p, u_c1, 5.0);\n'
++'    float c2 = covRows(p, u_c2, 5.0);\n'
++'    float c3 = covRows(p, u_c3, 3.0);\n'
++'    float xe4 = mix(-1.10, 1.06, u_c4);\n'
++'    float c4 = (u_c4<=0.0) ? 0.0 : ((u_c4>=1.0) ? 1.0 : (1.0 - smoothstep(xe4-0.06, xe4+0.06, p.x)));\n'
++'    float ox = 1.0 - c1;\n'
++'    float coarse = c1*(1.0-c2);\n'
++'    float fine = c2;\n'
++'    float slurry = max(c1*0.85, c2*0.6)*(1.0-c3);\n'
++'    float matte = c3*(1.0-c4);\n'
++'    float cured = c4;\n'
++'    float blurR = ox*0.050 + coarse*0.026 + fine*(1.0-c3)*0.016 + matte*0.011 + 0.0015;\n'
++'    vec3 icol = vec3(0.0);\n'
++'    vec2 BO[6];\n'
++'    BO[0]=vec2(0.0,0.0); BO[1]=vec2(0.85,0.30); BO[2]=vec2(-0.55,0.65); BO[3]=vec2(0.30,-0.85); BO[4]=vec2(-0.80,-0.40); BO[5]=vec2(0.15,0.90);\n'
++'    for(int i=0;i<6;i++){ icol += interiorCol(p + BO[i]*blurR, u_tilt, u_on); }\n'
++'    icol /= 6.0;\n'
++'    float iluma = dot(icol, vec3(0.35,0.45,0.20));\n'
++'    float oxTex = 0.55 + 0.6*fbm(p*4.2+11.0);\n'
++'    vec3 oxc = vec3(0.62,0.55,0.35)*(0.5+iluma*1.3)*oxTex;\n'
++'    icol = mix(icol, oxc, ox*0.74);\n'
++'    vec2 d1 = vec2(0.85,0.53); vec2 d2 = vec2(-0.53,0.85);\n'
++'    float strC = vnoise(vec2(dot(p,d1)*60.0, dot(p,d2)*6.0));\n'
++'    float strF = vnoise(vec2(dot(p,d1)*220.0, dot(p,d2)*18.0)+5.0);\n'
++'    icol += (strC-0.5)*coarse*0.34;\n'
++'    icol += (strF-0.5)*fine*(1.0-cured)*0.13;\n'
++'    vec3 slc = vec3(0.82,0.83,0.82)*(0.55+iluma*0.7);\n'
++'    icol = mix(icol, slc, clamp(slurry,0.0,1.0)*0.55);\n'
++'    icol = mix(icol, vec3(0.75,0.78,0.80)*(0.45+iluma*0.8), matte*0.30);\n'
++'    if(u_tool.z > 0.0){\n'
++'      float td = length(p-u_tool.xy);\n'
++'      icol *= 1.0 - 0.18*exp(-td*td*14.0)*u_tool.z;\n'
++'      icol += vec3(0.9)*exp(-td*td*30.0)*u_tool.z*0.10;\n'
++'    }\n'
++'    vec3 N = normalize(vec3(p.x*0.35, p.y*0.55, 1.0) + vec3(u_tilt*0.35,0.0));\n'
++'    float F = pow(1.0-abs(N.z), 2.4)*0.9 + 0.04;\n'
++'    vec3 rd = reflect(vec3(0.0,0.0,-1.0), N);\n'
++'    float env = pow(max(0.0, sin(rd.x*3.8 + rd.y*2.4 + 1.3)), 4.0)*0.7\n'
++'              + pow(max(0.0, sin(rd.x*8.0 - rd.y*2.0 - 1.8)), 36.0)*1.0;\n'
++'    icol += cured*F*env*vec3(0.85,0.92,1.0)*0.85;\n'
++'    icol += cured*pow(clamp(1.0-abs(d+0.10)*11.0,0.0,1.0),3.0)*clamp(p.y*0.9+0.35,0.0,1.0)*vec3(0.30);\n'
++'    if(u_c4>0.001 && u_c4<0.999){\n'
++'      float band = exp(-pow((p.x-xe4)*7.0,2.0));\n'
++'      icol += band*F*vec3(0.90,0.95,1.0)*0.55;\n'
++'      icol += band*vec3(0.82,0.90,1.0)*0.12;\n'
++'    }\n'
++'    icol *= 1.0 - 0.30*smoothstep(-0.12,-0.02,d)*(1.0-cured*0.4);\n'
++'    vec3 bez = mix(vec3(0.06,0.08,0.11), vec3(0.16,0.19,0.23), clamp(0.5+p.y,0.0,1.0));\n'
++'    col = mix(col, bez, smoothstep(0.010,-0.005,d));\n'
++'    col = mix(col, icol, smoothstep(-0.030,-0.045,d));\n'
++'  }\n'
++'  float gr = hash12(gl_FragCoord.xy);\n'
++'  col += (gr-0.5)*0.010;\n'
++'  col = pow(col, vec3(0.95));\n'
++'  o = vec4(col, 1.0);\n'
++'}\n';
+
+/* ============ process: scroll + tools ============ */
+function timeline(P){
+  var T = {c1:0,c2:0,c3:0,c4:0,on:0,tool:null,label:'OXIDIZED',step:0};
+  T.c1 = clamp((P-0.06)/0.28, 0, 1);
+  T.c2 = clamp((P-0.36)/0.19, 0, 1);
+  T.c3 = clamp((P-0.57)/0.11, 0, 1);
+  T.c4 = clamp((P-0.70)/0.20, 0, 1);
+  T.on = clamp((P-0.92)/0.06, 0, 1);
+  var q;
+  if(P < 0.06){ T.label='OXIDIZED'; T.step=0; }
+  else if(P < 0.36){ q=rowPos(T.c1,5); T.tool={type:'sand',grit:'800',x:q.x,y:q.y,dir:q.dir}; T.label='WET SAND · 800 GRIT'; T.step=0; }
+  else if(P < 0.57){ if(T.c2<1){ q=rowPos(T.c2,5); T.tool={type:'sand',grit:'3000',x:q.x,y:q.y,dir:q.dir}; } T.label='WET SAND · 3000 GRIT'; T.step=0; }
+  else if(P < 0.70){ if(T.c3<1){ q=rowPos(T.c3,3); T.tool={type:'cloth',x:q.x,y:q.y,dir:q.dir}; } T.label='WIPE DOWN'; T.step=1; }
+  else if(P < 0.92){ if(T.c4<1){ T.tool={type:'coat',x:lerp(-1.10,1.06,T.c4),y:0.0,dir:1}; } T.label='CLEAR COAT'; T.step=2; }
+  else { T.label = (T.on>0.6)?'SEALED · LIGHTS ON':'SEALED'; T.step=2; }
+  return T;
+}
+
+function initProcess(){
+  var canvas = document.getElementById('lens');
+  var tools = document.getElementById('tools');
+  var tctx = tools.getContext('2d');
+  var gl = canvas.getContext('webgl2', {antialias:true, alpha:false});
+  if(!gl){ canvas.style.display='none'; tools.style.display='none'; return; }
+  var pr = makeProgram(gl, LENS_FS, 'lens');
+  if(!pr) { canvas.style.display='none'; return; }
+  var b = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, b);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0);
+  gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  var Ucache = {};
+  function U(n){ if(!(n in Ucache)) Ucache[n]=gl.getUniformLocation(pr,n); return Ucache[n]; }
+
+  var root = document.getElementById('procroot');
+  var steps = [document.getElementById('ps0'), document.getElementById('ps1'), document.getElementById('ps2')];
+  var lab = document.getElementById('stagelab');
+  var P = 0, PT = 0;
+  var tilt = {x:0,y:0}, tiltT = {x:0,y:0};
+  var sw = document.querySelector('.stagewrap');
+  sw.addEventListener('pointermove', function(e){
+    var r = sw.getBoundingClientRect();
+    tiltT.x = ((e.clientX-r.left)/r.width - 0.5)*1.5;
+    tiltT.y = (0.5 - (e.clientY-r.top)/r.height)*1.5;
+  });
+  sw.addEventListener('pointerleave', function(){ tiltT.x=0; tiltT.y=0; });
+
+  function resize(){
+    var dpr = Math.min(window.devicePixelRatio||1, 1.75);
+    var w = Math.round(canvas.clientWidth*dpr), h = Math.round(canvas.clientHeight*dpr);
+    if(w>0 && h>0 && (w!==canvas.width || h!==canvas.height)){
+      canvas.width=w; canvas.height=h; tools.width=w; tools.height=h;
+    }
+  }
+  function updateP(){
+    var r = root.getBoundingClientRect();
+    var span = r.height - window.innerHeight;
+    PT = span>0 ? clamp(-r.top/span, 0, 1) : 0;
+  }
+  window.addEventListener('scroll', updateP, {passive:true});
+  window.addEventListener('resize', resize);
+
+  /* lens-space -> canvas px */
+  function L2P(x, y, W, H){
+    var a = W/H;
+    return { x:(x/(2*a)+0.5)*W, y:(0.5 - y/2)*H, s:H/2 };
+  }
+  function rrect(x,y,w,h,r){
+    tctx.beginPath();
+    tctx.moveTo(x+r,y); tctx.arcTo(x+w,y,x+w,y+h,r); tctx.arcTo(x+w,y+h,x,y+h,r);
+    tctx.arcTo(x,y+h,x,y,r); tctx.arcTo(x,y,x+w,y,r); tctx.closePath();
+  }
+  function drawTools(T, t){
+    var W = tools.width, H = tools.height;
+    tctx.clearRect(0,0,W,H);
+    if(!T.tool) return;
+    var pt = L2P(T.tool.x, T.tool.y, W, H);
+    var s = pt.s;
+    tctx.save();
+    tctx.translate(pt.x, pt.y);
+    if(T.tool.type === 'sand'){
+      var bw = 0.46*s, bh = 0.27*s;
+      tctx.rotate(-0.05 + 0.05*Math.sin(t*10));
+      tctx.fillStyle = 'rgba(12,35,64,0.22)';
+      tctx.beginPath(); tctx.ellipse(0, bh*0.62, bw*0.60, bh*0.30, 0, 0, 6.2832); tctx.fill();
+      var g = tctx.createLinearGradient(0,-bh/2,0,bh/2);
+      g.addColorStop(0,'#C4D0DD'); g.addColorStop(0.75,'#8FA2B5'); g.addColorStop(1,'#6E8296');
+      tctx.fillStyle = g; rrect(-bw/2,-bh/2,bw,bh, s*0.035); tctx.fill();
+      tctx.fillStyle = (T.tool.grit==='800') ? '#4C5866' : '#A6B2BE';
+      rrect(-bw/2, bh/2 - bh*0.30, bw, bh*0.30, s*0.02); tctx.fill();
+      tctx.fillStyle = 'rgba(255,255,255,0.35)';
+      for(var i=0;i<14;i++){ tctx.fillRect(-bw/2 + Math.random()*bw, bh/2-bh*0.28 + Math.random()*bh*0.24, 1.5, 1.5); }
+      tctx.fillStyle = '#0C2340';
+      tctx.font = '700 ' + Math.round(bh*0.42) + 'px Archivo, sans-serif';
+      tctx.textAlign = 'center'; tctx.textBaseline = 'middle';
+      tctx.fillText(T.tool.grit, 0, -bh*0.12);
+      tctx.fillStyle = 'rgba(150,200,245,0.75)';
+      for(var j=0;j<6;j++){
+        var dx = (T.tool.dir||1) * (bw*0.5 + Math.random()*bw*0.35);
+        tctx.beginPath(); tctx.arc(dx, (Math.random()-0.5)*bh*1.3, 1.6+Math.random()*2.2, 0, 6.2832); tctx.fill();
+      }
+    } else if(T.tool.type === 'cloth'){
+      tctx.rotate(0.10*Math.sin(t*6));
+      tctx.fillStyle = 'rgba(12,35,64,0.16)';
+      tctx.beginPath(); tctx.ellipse(0, 0.12*s, 0.26*s, 0.12*s, 0, 0, 6.2832); tctx.fill();
+      tctx.fillStyle = '#F2F5F8';
+      tctx.beginPath();
+      tctx.ellipse(-0.07*s, 0, 0.16*s, 0.11*s, -0.4, 0, 6.2832);
+      tctx.ellipse(0.05*s, -0.02*s, 0.17*s, 0.12*s, 0.3, 0, 6.2832);
+      tctx.ellipse(0.02*s, 0.05*s, 0.15*s, 0.10*s, 0.1, 0, 6.2832);
+      tctx.fill();
+      tctx.strokeStyle = 'rgba(120,140,160,0.55)'; tctx.lineWidth = Math.max(1, s*0.008);
+      tctx.beginPath(); tctx.moveTo(-0.16*s, 0.02*s); tctx.quadraticCurveTo(-0.02*s, -0.07*s, 0.14*s, 0.01*s); tctx.stroke();
+      tctx.beginPath(); tctx.moveTo(-0.12*s, 0.07*s); tctx.quadraticCurveTo(0.02*s, 0.00*s, 0.15*s, 0.07*s); tctx.stroke();
+    } else if(T.tool.type === 'coat'){
+      var dir = T.tool.dir||1;
+      var pw = 0.34*s, ph = 0.23*s;
+      tctx.rotate(-0.04);
+      // wet clear-coat sheen freshly laid down behind the pad
+      var tg = tctx.createRadialGradient(-dir*pw*0.9,0,0, -dir*pw*0.9,0, pw*1.7);
+      tg.addColorStop(0,'rgba(222,236,252,0.32)');
+      tg.addColorStop(1,'rgba(222,236,252,0)');
+      tctx.fillStyle = tg;
+      tctx.beginPath(); tctx.ellipse(-dir*pw*0.9, 0, pw*1.7, ph*1.15, 0, 0, 6.2832); tctx.fill();
+      // contact shadow
+      tctx.fillStyle = 'rgba(12,35,64,0.20)';
+      tctx.beginPath(); tctx.ellipse(0, ph*0.6, pw*0.58, ph*0.30, 0, 0, 6.2832); tctx.fill();
+      // foam applicator pad
+      var pg = tctx.createLinearGradient(0,-ph/2,0,ph/2);
+      pg.addColorStop(0,'#5B8FD0'); pg.addColorStop(1,'#31659F');
+      tctx.fillStyle = pg; rrect(-pw/2,-ph/2,pw,ph, s*0.05); tctx.fill();
+      tctx.fillStyle = 'rgba(255,255,255,0.16)';
+      rrect(-pw/2, ph/2-ph*0.34, pw, ph*0.34, s*0.03); tctx.fill();
+      // handle
+      tctx.fillStyle = '#0C2340';
+      rrect(-pw*0.13, -ph/2 - 0.10*s, pw*0.26, 0.11*s, s*0.015); tctx.fill();
+      // fresh gloss beading at the leading edge
+      tctx.fillStyle = 'rgba(238,247,255,0.85)';
+      for(var m=0;m<4;m++){
+        tctx.beginPath();
+        tctx.arc(dir*(pw*0.5 + Math.random()*pw*0.28), (Math.random()-0.5)*ph, 1.1+Math.random()*1.5, 0, 6.2832);
+        tctx.fill();
+      }
+    }
+    tctx.restore();
+  }
+
+  var visible = true;
+  new IntersectionObserver(function(en){ visible = en[0].isIntersecting; }, {threshold:0}).observe(canvas);
+  var t0 = performance.now();
+  var S = {c1:0,c2:0,c3:0,c4:0,on:0};
+  document.addEventListener('visibilitychange', function(){
+    if(!document.hidden){
+      updateP(); P = PT;
+      var T = timeline(P);
+      S.c1=T.c1; S.c2=T.c2; S.c3=T.c3; S.c4=T.c4; S.on=T.on;
+    }
+  });
+
+  function frame(nowMs){
+    requestAnimationFrame(frame);
+    if(!visible || document.hidden) return;
+    resize(); updateP();
+    var t = (nowMs-t0)/1000;
+    P = lerp(P, PT, 0.14);
+    var T = timeline(P);
+    S.c1 = lerp(S.c1, T.c1, 0.25); S.c2 = lerp(S.c2, T.c2, 0.25);
+    S.c3 = lerp(S.c3, T.c3, 0.25); S.c4 = lerp(S.c4, T.c4, 0.25);
+    S.on = lerp(S.on, T.on, 0.10);
+    tilt.x = lerp(tilt.x, REDUCED?0:tiltT.x, 0.07);
+    tilt.y = lerp(tilt.y, REDUCED?0:tiltT.y, 0.07);
+    if(lab.textContent !== T.label) lab.textContent = T.label;
+    for(var i=0;i<3;i++) steps[i].classList.toggle('on', i===T.step);
+
+    gl.viewport(0,0,canvas.width,canvas.height);
+    gl.useProgram(pr);
+    gl.uniform1f(U('u_time'), t);
+    gl.uniform2f(U('u_res'), canvas.width, canvas.height);
+    gl.uniform2f(U('u_tilt'), tilt.x, tilt.y);
+    gl.uniform1f(U('u_c1'), S.c1); gl.uniform1f(U('u_c2'), S.c2);
+    gl.uniform1f(U('u_c3'), S.c3); gl.uniform1f(U('u_c4'), S.c4);
+    gl.uniform1f(U('u_on'), S.on);
+    if(T.tool && (T.tool.type==='sand' || T.tool.type==='cloth')){
+      gl.uniform3f(U('u_tool'), T.tool.x, T.tool.y, 1.0);
+    } else {
+      gl.uniform3f(U('u_tool'), 0.0, 0.0, 0.0);
+    }
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    drawTools(T, t);
+  }
+  resize();
+  requestAnimationFrame(frame);
+}
+
+/* ============ marquee (reviews from assets/reviews.json) ============ */
+function initMarquee(){
+  var tr = document.getElementById('mtrack');
+  var marq = tr.parentElement;
+  var FALLBACK = [
+    {stars:5, quote:"Sol was fast, considerate, and professional. I didn't know how much difference clean headlights would make until I had them!", name:"Luke", place:"Minneapolis"},
+    {stars:5, quote:"Looks brand new. Should've done it years ago.", name:"R.S.", place:"St. Louis Park"}
+  ];
+  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function item(r){
+    var n = Math.max(1, Math.min(5, r.stars||5)), stars='';
+    for(var i=0;i<n;i++) stars+='★';
+    var who = esc(r.name); if(r.place) who += ', '+esc(r.place);
+    return '<span class="rev"><span class="stars">'+stars+'</span><span class="q">“'+esc(r.quote)+'”</span><span class="who">'+who+'</span></span>';
+  }
+  function render(list){
+    if(!Array.isArray(list) || !list.length) list = FALLBACK;
+    var base = list.map(item).join('');
+    tr.innerHTML = base;
+    var guard=0;
+    while(tr.scrollWidth < marq.clientWidth + 40 && guard<12){ tr.innerHTML += base; guard++; }
+    var groupW = tr.scrollWidth;
+    tr.innerHTML = tr.innerHTML + tr.innerHTML;   /* duplicate for seamless -50% loop */
+    if(!REDUCED && groupW > 0) tr.style.animationDuration = Math.max(18, groupW/60).toFixed(1)+'s';
+  }
+  render(FALLBACK);   /* immediate — works offline / on file:// */
+  if(window.fetch){
+    fetch('assets/reviews.json', {cache:'no-store'})
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){ if(d) render(d); })
+      .catch(function(){});
+  }
+}
+
+/* ============ fireworks (you know where) ============ */
+function initFireworks(){
+  var cv = document.getElementById('fw');
+  var fx = cv.getContext('2d');
+  var parts = [], rockets = [], running = false;
+  var COLORS = ['#FFFFFF','#9CC4EC','#2F6BAE','#F0B429'];
+  function boom(x,y){
+    var n = 60 + (Math.random()*50|0);
+    var c = COLORS[(Math.random()*COLORS.length)|0];
+    for(var i=0;i<n;i++){
+      var an = Math.random()*6.2832, sp = (0.4+Math.random()*0.6)*(3.0+Math.random()*3.0);
+      parts.push({x:x,y:y,vx:Math.cos(an)*sp,vy:Math.sin(an)*sp,life:1,dk:0.008+Math.random()*0.012,c:c,r:1.2+Math.random()*1.8});
+    }
+  }
+  function tick(){
+    fx.globalCompositeOperation = 'destination-out';
+    fx.fillStyle = 'rgba(0,0,0,0.16)';
+    fx.fillRect(0,0,cv.width,cv.height);
+    fx.globalCompositeOperation = 'source-over';
+    var i;
+    for(i=rockets.length-1;i>=0;i--){
+      var r = rockets[i];
+      if(r.delay>0){ r.delay--; continue; }
+      r.x += r.vx; r.y += r.vy; r.vy += 0.02;
+      fx.fillStyle = '#DCE9F7';
+      fx.fillRect(r.x-1, r.y, 2, 7);
+      if(r.y <= r.fuse){ boom(r.x, r.y); rockets.splice(i,1); }
+    }
+    for(i=parts.length-1;i>=0;i--){
+      var p = parts[i];
+      p.x += p.vx; p.y += p.vy; p.vy += 0.045; p.vx *= 0.985; p.vy *= 0.985;
+      p.life -= p.dk;
+      if(p.life<=0){ parts.splice(i,1); continue; }
+      fx.globalAlpha = Math.max(0, p.life) * (0.6+0.4*Math.sin(p.life*40));
+      fx.fillStyle = p.c;
+      fx.beginPath(); fx.arc(p.x, p.y, p.r, 0, 6.2832); fx.fill();
+    }
+    fx.globalAlpha = 1;
+    if(rockets.length || parts.length){ requestAnimationFrame(tick); }
+    else { running = false; cv.style.display='none'; fx.clearRect(0,0,cv.width,cv.height); }
+  }
+  document.getElementById('pyro').addEventListener('click', function(){
+    cv.style.display = 'block';
+    cv.width = window.innerWidth; cv.height = window.innerHeight;
+    for(var i=0;i<6;i++){
+      rockets.push({ x: cv.width*(0.12+0.76*Math.random()), y: cv.height+8,
+        vx:(Math.random()-0.5)*1.6, vy:-(cv.height*0.011)*(0.85+Math.random()*0.4),
+        fuse: cv.height*(0.18+Math.random()*0.35), delay: i*14 + (Math.random()*18|0) });
+    }
+    if(!running){ running = true; requestAnimationFrame(tick); }
+  });
+}
+
+/* ============ reveal ============ */
+function initReveal(){
+  var io = new IntersectionObserver(function(es){
+    for(var i=0;i<es.length;i++) if(es[i].isIntersecting){ es[i].target.classList.add('in'); io.unobserve(es[i].target); }
+  }, {threshold:0.15});
+  var rvs = document.querySelectorAll('.rv');
+  for(var i=0;i<rvs.length;i++) io.observe(rvs[i]);
+}
+
+initBA();
+initProcess();
+initMarquee();
+initFireworks();
+initReveal();
+})();
+</script>
+</body>
+</html>
