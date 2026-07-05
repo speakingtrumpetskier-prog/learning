@@ -73,17 +73,6 @@ h1 span{color:var(--blue)}
 .bacap{margin-top:10px;font-size:12.5px;color:var(--ink2);letter-spacing:.06em;text-transform:uppercase;
   display:flex;justify-content:space-between}
 
-/* reviews marquee */
-.marq{background:var(--navy);color:#fff;overflow:hidden;padding:22px 0}
-.mtrack{display:inline-flex;gap:0;white-space:nowrap;animation:marq 36s linear infinite;width:max-content}
-.marq:hover .mtrack{animation-play-state:paused}
-@keyframes marq{to{transform:translateX(-50%)}}
-.rev{display:inline-flex;align-items:baseline;gap:14px;padding:0 44px;border-right:1px solid rgba(255,255,255,.14)}
-.rev .stars{color:#F0B429;font-size:14px;letter-spacing:2px}
-.rev .q{font-size:15.5px;font-weight:500}
-.rev .who{font-size:13px;color:var(--ice);font-weight:600}
-@media (prefers-reduced-motion:reduce){ .mtrack{animation:none} .marq{overflow-x:auto} }
-
 /* stat band */
 .stat{background:var(--bg)}
 .statwrap{max-width:1200px;margin:0 auto;padding:clamp(40px,6vw,72px) clamp(16px,3vw,36px);
@@ -171,7 +160,6 @@ footer a:hover{color:#fff}
     <a class="hlogo" href="#top" aria-label="Clear Vision Cars"><img src="assets/logo.png" alt="Clear Vision Cars"></a>
     <nav>
       <a href="#process">Process</a>
-      <a href="#reviews">Reviews</a>
       <a href="tel:+16513684472">(651) 368-4472</a>
       <a class="btn" href="https://docs.google.com/forms/d/e/1FAIpQLSciSpZyI2kTbDq9lTqUa61PR_cCRKOzuXVrTm6bC0Iv6xuK6Q/viewform" target="_blank" rel="noopener">Book</a>
     </nav>
@@ -204,14 +192,6 @@ footer a:hover{color:#fff}
     </div>
   </div>
 </section>
-
-<div class="marq" id="reviews" aria-label="Customer reviews">
-  <div class="mtrack" id="mtrack">
-    <!-- Reviews render from assets/reviews.json (see HOW-TO-EDIT.txt). This is the fallback. -->
-    <span class="rev"><span class="stars">★★★★★</span><span class="q">&ldquo;Sol was fast, considerate, and professional. I didn&rsquo;t know how much difference clean headlights would make until I had them!&rdquo;</span><span class="who">Luke, Minneapolis</span></span>
-    <span class="rev"><span class="stars">★★★★★</span><span class="q">&ldquo;Looks brand new. Should&rsquo;ve done it years ago.&rdquo;</span><span class="who">R.S., St. Louis Park</span></span>
-  </div>
-</div>
 
 <section class="stat">
   <div class="statwrap">
@@ -722,40 +702,6 @@ function initProcess(){
   requestAnimationFrame(frame);
 }
 
-/* ============ marquee (reviews from assets/reviews.json) ============ */
-function initMarquee(){
-  var tr = document.getElementById('mtrack');
-  var marq = tr.parentElement;
-  var FALLBACK = [
-    {stars:5, quote:"Sol was fast, considerate, and professional. I didn't know how much difference clean headlights would make until I had them!", name:"Luke", place:"Minneapolis"},
-    {stars:5, quote:"Looks brand new. Should've done it years ago.", name:"R.S.", place:"St. Louis Park"}
-  ];
-  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-  function item(r){
-    var n = Math.max(1, Math.min(5, r.stars||5)), stars='';
-    for(var i=0;i<n;i++) stars+='★';
-    var who = esc(r.name); if(r.place) who += ', '+esc(r.place);
-    return '<span class="rev"><span class="stars">'+stars+'</span><span class="q">“'+esc(r.quote)+'”</span><span class="who">'+who+'</span></span>';
-  }
-  function render(list){
-    if(!Array.isArray(list) || !list.length) list = FALLBACK;
-    var base = list.map(item).join('');
-    tr.innerHTML = base;
-    var guard=0;
-    while(tr.scrollWidth < marq.clientWidth + 40 && guard<12){ tr.innerHTML += base; guard++; }
-    var groupW = tr.scrollWidth;
-    tr.innerHTML = tr.innerHTML + tr.innerHTML;   /* duplicate for seamless -50% loop */
-    if(!REDUCED && groupW > 0) tr.style.animationDuration = Math.max(18, groupW/60).toFixed(1)+'s';
-  }
-  render(FALLBACK);   /* immediate — works offline / on file:// */
-  if(window.fetch){
-    fetch('assets/reviews.json', {cache:'no-store'})
-      .then(function(r){ return r.ok ? r.json() : null; })
-      .then(function(d){ if(d) render(d); })
-      .catch(function(){});
-  }
-}
-
 /* ============ fireworks (you know where) ============ */
 function initFireworks(){
   var cv = document.getElementById('fw');
@@ -820,7 +766,6 @@ function initReveal(){
 
 initBA();
 initProcess();
-initMarquee();
 initFireworks();
 initReveal();
 })();

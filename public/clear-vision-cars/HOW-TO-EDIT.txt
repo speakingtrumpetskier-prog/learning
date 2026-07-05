@@ -1,27 +1,6 @@
 CLEAR VISION CARS — updating the website
 =========================================
 
-REVIEWS  (the scrolling banner near the top)
---------------------------------------------
-Open:  assets/reviews.json
-
-Each review is a block like this:
-
-  {
-    "stars": 5,
-    "quote": "What the customer said.",
-    "name": "First name or initials",
-    "place": "City"
-  }
-
-- To ADD a review: copy a block, paste it in, and edit the text.
-- To REMOVE one: delete its block.
-- Keep a comma BETWEEN blocks, and NO comma after the last one.
-- Save the file, refresh the page, done. (No code to touch.)
-
-Note: the "R.S. / St. Louis Park" entry is a placeholder. Replace it or
-remove it once you have real reviews. "Luke / Minneapolis" is real.
-
 BEFORE / AFTER PHOTOS  (the hero slider)
 ----------------------------------------
 The slider shows two images:
